@@ -35,20 +35,23 @@ class Game:
         unscaledBg = pygame.image.load('assets/images/MainMenuBg.jpg').convert()
         bg = pygame.transform.scale(unscaledBg, pygame.display.get_window_size())
 
-        # Отрисовываем название игры сверху
-        bigFont = pygame.font.Font('assets/fonts/CinnamonCoffeCake.ttf', 100)
-        textSurface = bigFont.render('Untitled game', True, 'White')
+        # Отрисовываем тексты
+        small_font = pygame.font.Font('assets/fonts/CinnamonCoffeCake.ttf', 20)
+        font = pygame.font.Font('assets/fonts/CinnamonCoffeCake.ttf', 35)
+        big_font = pygame.font.Font('assets/fonts/CinnamonCoffeCake.ttf', 100)
+        game_title = big_font.render('Untitled game', True, '#E1FAF9')
+        version_title = small_font.render('Version Prealpha 0.1', True, '#E1FAF9')
 
         # Создаём кнопки и добавляем их в группу
-        font = pygame.font.Font('assets/fonts/CinnamonCoffeCake.ttf', 35)
-        playButton = Button((50, 200, 200, 50), 'Play', font, 'White', '#0496FF', '#006BA6')
-        optionsButton = Button((50, 275, 200, 50), 'Options', font, 'White', '#0496FF', '#006BA6')
-        exitButton = Button((50, 350, 200, 50), 'Exit', font, 'White', '#0496FF', '#006BA6')
-        menuButtons = ButtonGroup(playButton, exitButton, optionsButton)
+        play_button = Button((50, 200, 200, 50), 'Play', font, 'White', '#0496FF', '#006BA6')
+        options_button = Button((50, 275, 200, 50), 'Options', font, 'White', '#0496FF', '#006BA6')
+        exit_button = Button((50, 350, 200, 50), 'Exit', font, 'White', '#0496FF', '#006BA6')
+        menu_buttons = ButtonGroup(play_button, options_button, exit_button)
 
         # Запускаем музочку.
         pygame.mixer.music.load('assets/music/Waterfall.mp3')
         pygame.mixer.music.play(3)
+        pygame.mixer.music.set_volume(0.2)
 
         # Main loop
         while True:
@@ -58,30 +61,32 @@ class Game:
                     sys.exit()
 
                 elif event.type == pygame.MOUSEMOTION:
-                    menuButtons.checkHover(event.pos)
+                    menu_buttons.check_hover(event.pos)
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     # Проверяем, нажата ли левая кнопка мыши, и находится ли курсор над кнопкой.
                     if event.button == pygame.BUTTON_LEFT:
-                        clickedButton = menuButtons.checkClick(event.pos)
-                        if clickedButton is None: continue
+                        clicked_button = menu_buttons.check_click(event.pos)
+                        if clicked_button is None: continue
 
-                        if clickedButton is playButton:
+                        if clicked_button is play_button:
                             print('Нажата кнопка ИГРАТЬ')
-                        elif clickedButton is optionsButton:
+                        elif clicked_button is options_button:
                             print('Нажата кнопка НАСТРОЙКИ')
-                        elif clickedButton is exitButton:
+                        elif clicked_button is exit_button:
                             print('Нажата кнопка ВЫХОД')
 
-            # Рисуем сначала фон, потом кнопки на нём.
+            # Отрисовываем всё по порядку
             self.screen.blit(bg, (0, 0))
-            self.screen.blit(textSurface, (50, 0))
-            menuButtons.update(self.screen)
+            pygame.draw.rect(self.screen, '#EE6C4D', game_title.get_rect(topleft=(50, 20)))
+            self.screen.blit(game_title, (50, 20))
+            self.screen.blit(version_title, version_title.get_rect(bottomright=(pygame.display.get_window_size())))
+            menu_buttons.update(self.screen)
 
             self.clock.tick(self.FPS)
             pygame.display.update()
 
 
 if __name__ == "__main__":
-    mainWindow = Game(1280, 720)
-    mainWindow.run()
+    main_window = Game(1280, 720)
+    main_window.run()
