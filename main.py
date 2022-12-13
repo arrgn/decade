@@ -1,6 +1,7 @@
 import sys
 import pygame
 from button import Button, ButtonGroup
+from assets.scripts.path_module import path_to_file
 
 
 class Game:
@@ -14,7 +15,6 @@ class Game:
         self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
         pygame.display.update()
-        
 
     def run(self) -> None:
         while True:
@@ -32,13 +32,13 @@ class Game:
 
     def show_menu(self):
         # Масштабируем задний фон под размеры окна
-        unscaledBg = pygame.image.load('assets/images/MainMenuBg.jpg').convert()
-        bg = pygame.transform.scale(unscaledBg, pygame.display.get_window_size())
+        unscaled_bg = pygame.image.load(path_to_file('assets', 'images', 'MainMenuBg.jpg')).convert()
+        bg = pygame.transform.scale(unscaled_bg, pygame.display.get_window_size())
 
         # Отрисовываем тексты
-        small_font = pygame.font.Font('assets/fonts/CinnamonCoffeCake.ttf', 20)
-        font = pygame.font.Font('assets/fonts/CinnamonCoffeCake.ttf', 35)
-        big_font = pygame.font.Font('assets/fonts/CinnamonCoffeCake.ttf', 100)
+        small_font = pygame.font.Font(path_to_file('assets', 'fonts', 'CinnamonCoffeCake.ttf'), 20)
+        font = pygame.font.Font(path_to_file('assets', 'fonts', 'CinnamonCoffeCake.ttf'), 35)
+        big_font = pygame.font.Font(path_to_file('assets', 'fonts', 'CinnamonCoffeCake.ttf'), 100)
         game_title = big_font.render('Untitled game', True, '#E1FAF9')
         version_title = small_font.render('Version Prealpha 0.1', True, '#E1FAF9')
 
@@ -49,7 +49,7 @@ class Game:
         menu_buttons = ButtonGroup(play_button, options_button, exit_button)
 
         # Запускаем музочку.
-        pygame.mixer.music.load('assets/music/Waterfall.mp3')
+        pygame.mixer.music.load(path_to_file('assets', 'music', 'Waterfall.mp3'))
         pygame.mixer.music.play(3)
         pygame.mixer.music.set_volume(0.2)
 

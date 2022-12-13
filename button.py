@@ -1,8 +1,10 @@
 import pygame
+from typing import Union
 
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self, rect: pygame.Rect | tuple, text: str, font: pygame.font.Font, text_color: str | tuple, btn_color: str | tuple, hover_color: str | tuple) -> None:
+    def __init__(self, rect: Union[pygame.Rect, tuple], text: str, font: pygame.font.Font,
+                 text_color: Union[str, tuple], btn_color: Union[str, tuple], hover_color: Union[str, tuple]) -> None:
         super().__init__()
         self.rect = pygame.Rect(rect)
         self.font = font
@@ -23,7 +25,7 @@ class Button(pygame.sprite.Sprite):
     def check_hover(self, pos: tuple[int, int]) -> bool:
         """
             Проверяет наличие курсора на кнопке.
-            B положительном случае перерисовывает кнопку в другой цвет.
+            В положительном случае перерисовывает кнопку в другой цвет.
             Возвращает True/False в зависимости от результата.
         """
         if self.rect.collidepoint(pos):
@@ -44,7 +46,7 @@ class ButtonGroup(pygame.sprite.Group):
             if button.check_hover(pos):
                 break
 
-    def check_click(self, pos: tuple[int, int]) -> Button | None:
+    def check_click(self, pos: tuple[int, int]) -> Union[Button, None]:
         """
             Проверяет, была ли нажата какая либо кнопка в группе.
             Вызывать этот метод только в pygame.event.get()
