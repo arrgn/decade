@@ -5,7 +5,8 @@ from button import Button, ButtonGroup
 from assets.scripts.path_module import path_to_file
 from pytmx.util_pygame import load_pygame
 
-
+level_size = (95 * 32, 95 * 32)
+ 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, *groups):
         super().__init__(*groups)
@@ -42,17 +43,14 @@ class Player(pygame.sprite.Sprite):
     def update(self, border) -> None:
         self.getInput()
 
-        # Rotation
         if self.direction:
+            # Rotation
             self.tweenRotation()
             newDegree = -self.getAngle()
-            print(newDegree)
             self.image = pygame.transform.rotate(self.originalImage, newDegree)
             self.rect = self.image.get_rect(center=self.rect.center)
 
-
-        # Movement
-        if self.direction:
+            # Movement
             self.direction.normalize_ip()
             newPos = self.rect.center + self.direction * self.speed
             for rect in border:
@@ -181,26 +179,34 @@ class Game:
 
         # Создаём список всех Tile'ов и список стен для коллизий игрока.
         tiles = list()
-        borderTiles = list()
+        border_tiles = list()
         for layer in tmx_data.visible_layers:
             if hasattr(layer, 'data'):
                 for x, y, surf in layer.tiles():
                     tile = Tile(layer.name, (x * 32, y * 32), surf)
                     if layer.name == 'Стены' and tmx_data.get_tile_properties(x, y, 2).get('class', None) == 'Препятствие':
-                        borderTiles.append(tile.rect)
+                        border_tiles.append(tile.rect)
                     tiles.append(tile)
 
+        ground_surface = pygame.Surface(level_size)
+        for tile in tiles:
+            ground_surface.blit(tile.image, tile.rect)
+
+        ground_sprite = pygame.sprite.Sprite()
+        ground_sprite.image = ground_surface
+        ground_sprite.rect = ground_surface.get_rect()
+
         # Создаём группу спрайтов, которая будет служить камерой
-        camera_group = CameraGroup(*tiles, player)
+        camera_group = CameraGroup(ground_sprite, player)
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-            
+
             # Обновляем местоположение игрока и отрисовываем камеру в зависимости от него.
             self.clock.tick(self.FPS)
-            player.update(borderTiles)
+            player.update(border_tiles)
             camera_group.custom_draw(player)
             pygame.display.update()
 
