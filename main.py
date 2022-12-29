@@ -5,6 +5,66 @@ from assets.scripts.path_module import path_to_file
 from pytmx.util_pygame import load_pygame
 
 
+class Player(pygame.sprite.Sprite):
+    def __init__(self, pos, *groups):
+        super().__init__(*groups)
+        self.image = pygame.image.load('assets/sprites/PlayerImage.png').convert_alpha()
+        self.image = pygame.transform.scale(self.image, (32, 32))
+        self.rect = self.image.get_rect(topleft=pos)
+        self.speed = 6
+        self.direction = pygame.math.Vector2()
+
+    def getInput(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_w]:
+            self.direction.y = -1
+        elif keys[pygame.K_s]:
+            self.direction.y = 1
+        else:
+            self.direction.y = 0
+        
+        if keys[pygame.K_a]:
+            self.direction.x = -1
+        elif keys[pygame.K_d]:
+            self.direction.x = 1
+        else:
+            self.direction.x = 0
+    
+    def update(self) -> None:
+        self.getInput()
+        if self.direction:
+            self.direction.normalize_ip()
+        self.rect.center += self.direction * self.speed
+
+
+class Tile(pygame.sprite.Sprite):
+    def __init__(self, pos, surf, *groups):
+        super().__init__(*groups)
+        self.image = surf
+        self.rect = surf.get_rect(topleft=pos)
+
+
+class CameraGroup(pygame.sprite.Group):
+    def __init__(self, *sprites) -> None:
+        super().__init__(*sprites)
+        self.display_surface = pygame.display.get_surface()
+
+        # camera offset
+        self.offset = pygame.math.Vector2()
+        self.half_w = self.display_surface.get_width() // 2
+        self.half_h = self.display_surface.get_height() // 2
+
+    def center_target_camera(self, target):
+        self.offset.x = target.rect.centerx - self.half_w
+        self.offset.y = target.rect.centery - self.half_h
+
+    def custom_draw(self, player):
+        self.center_target_camera(player)
+        for sprite in self.sprites():
+            offsetPos = sprite.rect.topleft - self.offset
+            self.display_surface.blit(sprite.image, offsetPos)
+
+
 class Game:
     FPS = 60
 
@@ -92,10 +152,15 @@ class Game:
         self.screen.fill(0)
         tmx_data = load_pygame('assets/maps/Map.tmx')
         
-        for layer in tmx_data.visible_layers:
-            for x, y, surf in layer.tiles():
-                self.screen.blit(surf, (x * 32, y * 32))
+        player = Player((640, 640))
 
+        tiles = list()
+        for layer in tmx_data.visible_layers:
+            if hasattr(layer, 'data'):
+                for x, y, surf in layer.tiles():
+                    tiles.append(Tile((x * 32, y * 32), surf))
+        camera_group = CameraGroup(*tiles, player)
+            
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -103,6 +168,8 @@ class Game:
                     sys.exit()
             
             self.clock.tick(self.FPS)
+            camera_group.update()
+            camera_group.custom_draw(player)
             pygame.display.update()
 
 
