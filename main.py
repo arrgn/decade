@@ -14,12 +14,22 @@ class Player(pygame.sprite.Sprite):
         self.originalImage = pygame.transform.scale(image, (64, 64))
         self.image = self.originalImage.copy()
         self.rect = self.image.get_rect(topleft=pos)
-        self.speed = 6
+        
+        # Вектор движения, вектор наклона и скорость персонажа
         self.direction = pygame.math.Vector2()
         self.rotation = pygame.math.Vector2(0, -1)
+        self.speed = 6
 
     def getInput(self):
         keys = pygame.key.get_pressed()
+
+        # Ускорение на Shift
+        if keys[pygame.K_LSHIFT]:
+            self.speed = 12
+        else:
+            self.speed = 6
+        
+        # Проверка движения
         if keys[pygame.K_w]:
             self.direction.y = -1
         elif keys[pygame.K_s]:
@@ -35,22 +45,27 @@ class Player(pygame.sprite.Sprite):
             self.direction.x = 0
     
     def getAngle(self):
+        """Получить угол наклона в градусах из вектора наклона"""
+
+        # Перед координатой Y стоит унарный минус потому что координаты
+        # в pygame работают по уё.. другому.
         return math.degrees(math.atan2(self.rotation.x, -self.rotation.y))
 
     def tweenRotation(self):
+        """Что-то типо 'анимации' вектора наклона в сторону вектора движения"""
         self.rotation = self.rotation.lerp(self.direction, 0.09)
 
     def update(self, border) -> None:
         self.getInput()
 
         if self.direction:
-            # Rotation
+            # Наклон спрайта (Изменить вектор наклона, получить угол, повернуть изображение, поставить на прошлое место)
             self.tweenRotation()
             newDegree = -self.getAngle()
             self.image = pygame.transform.rotate(self.originalImage, newDegree)
             self.rect = self.image.get_rect(center=self.rect.center)
 
-            # Movement
+            # Движение (Тут всё понятно)
             self.direction.normalize_ip()
             newPos = self.rect.center + self.direction * self.speed
             for rect in border:
@@ -72,20 +87,38 @@ class CameraGroup(pygame.sprite.Group):
         super().__init__(*sprites)
         self.display_surface = pygame.display.get_surface()
 
-        # camera offset
+        # Смещение камеры
         self.offset = pygame.math.Vector2()
         self.half_w = self.display_surface.get_width() // 2
         self.half_h = self.display_surface.get_height() // 2
 
-    def center_target_camera(self, target):
+        # Всё для зума
+        self.zoom_scale = 1
+        self.internal_surf_size = (2500, 2500)
+        self.internal_surf = pygame.Surface(self.internal_surf_size, pygame.SRCALPHA)
+        self.internal_rect = self.internal_surf.get_rect(center=(self.half_w, self.half_h))
+        self.internal_surf_size_vector = pygame.math.Vector2(self.internal_surf_size)
+        self.internal_offset = pygame.math.Vector2()
+        self.internal_offset.x = self.internal_surf_size[0] // 2 - self.half_w
+        self.internal_offset.y = self.internal_surf_size[1] // 2 - self.half_h
+
+    def center_target_camera(self, target: pygame.sprite.Sprite) -> None:
+        """Центрируем камеру на спрайте target"""
         self.offset.x = target.rect.centerx - self.half_w
         self.offset.y = target.rect.centery - self.half_h
 
     def custom_draw(self, player):
         self.center_target_camera(player)
+
+        self.internal_surf.fill(0)
         for sprite in self.sprites():
-            offsetPos = sprite.rect.topleft - self.offset
-            self.display_surface.blit(sprite.image, offsetPos)
+            offsetPos = sprite.rect.topleft - self.offset + self.internal_offset
+            self.internal_surf.blit(sprite.image, offsetPos)
+
+        scaled_surf = pygame.transform.scale(self.internal_surf, self.internal_surf_size_vector * self.zoom_scale)
+        scaled_rect = scaled_surf.get_rect(center=(self.half_w, self.half_h))
+
+        self.display_surface.blit(scaled_surf, scaled_rect)
 
 
 class Game:
@@ -203,9 +236,12 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                elif event.type == pygame.MOUSEWHEEL:
+                    camera_group.zoom_scale = max(min(camera_group.zoom_scale + event.y * 0.03, 1.09), 0.52)
 
             # Обновляем местоположение игрока и отрисовываем камеру в зависимости от него.
             self.clock.tick(self.FPS)
+            # self.screen.fill(0) убирает бесконечную стену и ставит чёрный бордер
             player.update(border_tiles)
             camera_group.custom_draw(player)
             pygame.display.update()
