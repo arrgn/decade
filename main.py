@@ -2,52 +2,6 @@ import sys
 import pygame
 from button import Button, ButtonGroup
 from assets.scripts.path_module import path_to_file
-from pytmx.util_pygame import load_pygame
-
-
-class Cell:
-    def __init__(self) -> None:
-        pass
-
-
-class Board:
-    def __init__(self, rows, columns):
-        self.left = 0
-        self.top = 0
-        self.width = columns
-        self.height = rows
-        self.cell_size = 30
-        self.board = self.getBoard()
-
-    def getBoard(self):
-        blocks = list()
-        for _ in range(self.width):
-            block = list()
-            for _ in range(self.height):
-                block.append(Cell())
-            blocks.append(block)
-        return blocks
-
-    def set_view(self, left, top, cell_size):
-        self.left = left
-        self.top = top
-        self.cell_size = cell_size
-
-    def get_click(self, pos):
-        offsetPos = (pos[0] - self.left, pos[1] - self.top)
-        coords = (offsetPos[0] // self.cell_size,
-                  offsetPos[1] // self.cell_size)
-        if 0 <= coords[0] < self.width and 0 <= coords[1] < self.height:
-            return coords
-        return None
-
-    def render(self, screen):
-        for x in range(self.width):
-            for y in range(self.height):
-                xPos = self.left + self.cell_size * x
-                yPos = self.top + self.cell_size * y
-                rect = pygame.Rect(xPos, yPos, self.cell_size, self.cell_size)
-                pygame.draw.rect(screen, 'Gray', rect, 1)
 
 
 class Game:
@@ -117,7 +71,6 @@ class Game:
 
                         if clicked_button is play_button:
                             print('Нажата кнопка ИГРАТЬ')
-                            self.play_screen()
                         elif clicked_button is options_button:
                             print('Нажата кнопка НАСТРОЙКИ')
                         elif clicked_button is exit_button:
@@ -133,25 +86,8 @@ class Game:
             self.clock.tick(self.FPS)
             pygame.display.update()
 
-    def play_screen(self):
-
-        # board = Board(3, 10)
-        # board.set_view(0, 0, 100)
-
-        # self.screen.fill(0)
-        # board.render(self.screen)
-        tmx_data = load_pygame('assets/maps/Map.tmx')
-        print(dir(tmx_data))
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-            
-            self.clock.tick(self.FPS)
-            pygame.display.update()
-
 
 if __name__ == "__main__":
     main_window = Game(1280, 720)
     main_window.run()
+
