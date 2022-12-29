@@ -1,5 +1,6 @@
 import sys
 import pygame
+import math
 from button import Button, ButtonGroup
 from assets.scripts.path_module import path_to_file
 from pytmx.util_pygame import load_pygame
@@ -8,11 +9,13 @@ from pytmx.util_pygame import load_pygame
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, *groups):
         super().__init__(*groups)
-        self.image = pygame.image.load('assets/sprites/PlayerImage.png').convert_alpha()
-        self.image = pygame.transform.scale(self.image, (32, 32))
+        image = pygame.image.load('assets/sprites/Character.png').convert_alpha()
+        self.originalImage = pygame.transform.scale(image, (64, 64))
+        self.image = self.originalImage.copy()
         self.rect = self.image.get_rect(topleft=pos)
         self.speed = 6
         self.direction = pygame.math.Vector2()
+        self.rotation = pygame.math.Vector2(0, -1)
 
     def getInput(self):
         keys = pygame.key.get_pressed()
@@ -30,15 +33,32 @@ class Player(pygame.sprite.Sprite):
         else:
             self.direction.x = 0
     
+    def getAngle(self):
+        return math.degrees(math.atan2(self.rotation.x, -self.rotation.y))
+
+    def tweenRotation(self):
+        self.rotation = self.rotation.lerp(self.direction, 0.09)
+
     def update(self, border) -> None:
         self.getInput()
+
+        # Rotation
+        if self.direction:
+            self.tweenRotation()
+            newDegree = -self.getAngle()
+            print(newDegree)
+            self.image = pygame.transform.rotate(self.originalImage, newDegree)
+            self.rect = self.image.get_rect(center=self.rect.center)
+
+
+        # Movement
         if self.direction:
             self.direction.normalize_ip()
-        newPos = self.rect.center + self.direction * self.speed
-        for rect in border:
-            if rect.collidepoint(newPos):
-                return False
-        self.rect.center = newPos
+            newPos = self.rect.center + self.direction * self.speed
+            for rect in border:
+                if rect.collidepoint(newPos):
+                    return False
+            self.rect.center = newPos
 
 
 class Tile(pygame.sprite.Sprite):
