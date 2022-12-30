@@ -20,10 +20,14 @@ class Player(pygame.sprite.Sprite):
         self.image = self.originalImage.copy()
         self.rect = self.image.get_rect(topleft=pos)
         
-        # Вектор движения, вектор наклона и скорость персонажа
+        # Характеристики
+        self.speed = 6
+        self.health = 15
+        self.is_moving = False
+
+        # Вектор движения, вектор наклона
         self.direction = pygame.math.Vector2()
         self.rotation = pygame.math.Vector2(0, -1)
-        self.speed = 6
 
     def getInput(self):
         keys = pygame.key.get_pressed()
@@ -64,6 +68,8 @@ class Player(pygame.sprite.Sprite):
         self.getInput()
 
         if self.direction:
+            self.is_moving = True
+
             # Наклон спрайта (Изменить вектор наклона, получить угол, повернуть изображение, поставить на прошлое место)
             self.tweenRotation()
             newDegree = -self.getAngle()
@@ -77,6 +83,8 @@ class Player(pygame.sprite.Sprite):
                 if rect.collidepoint(newPos):
                     return False
             self.rect.center = newPos
+        else:
+            self.is_moving = False
 
 
 class Tile(pygame.sprite.Sprite):
@@ -124,6 +132,26 @@ class CameraGroup(pygame.sprite.Group):
         scaled_rect = scaled_surf.get_rect(center=(self.half_w, self.half_h))
 
         self.display_surface.blit(scaled_surf, scaled_rect)
+
+
+class EntityShadow(pygame.sprite.Sprite):
+    def __init__(self, sprite, *groups) -> None:
+        super().__init__(*groups)
+        self.offset_vector = pygame.math.Vector2(25, 25)
+        self.connected_sprite = sprite
+        self.update_shadow(force=True)
+
+    def update_shadow(self, force=False):
+        if self.connected_sprite.is_moving or force:
+            mask = pygame.mask.from_surface(self.connected_sprite.image)
+            mask_polygon = mask.outline()
+            surface = pygame.Surface(mask.get_size(), pygame.SRCALPHA)
+            pygame.draw.polygon(surface, (0, 0, 0, 128), mask_polygon)
+            self.image = surface
+            self.rect = surface.get_rect(center=self.connected_sprite.rect.center + self.offset_vector)
+
+    def update(self) -> None:
+        self.update_shadow()
 
 
 class Game:
@@ -215,6 +243,7 @@ class Game:
         UI = IngameUI(self.screen.get_size())
         tmx_data = load_pygame('assets/maps/Map.tmx')
         player = Player((800, 640))
+        player_shadow = EntityShadow(player)
 
         # Создаём список всех Tile'ов и список стен для коллизий игрока.
         tiles = list()
@@ -240,7 +269,8 @@ class Game:
         UI.startTimer(15)
 
         # Создаём группу спрайтов, которая будет служить камерой
-        camera_group = CameraGroup(ground_sprite, player)
+        camera_group = CameraGroup(ground_sprite, player_shadow, player)
+        print(camera_group.sprites())
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -254,6 +284,7 @@ class Game:
             dt = self.clock.tick(self.FPS)
             # self.screen.fill(0) убирает бесконечную стену и ставит чёрный бордер
             player.update(border_tiles)
+            player_shadow.update_shadow()
             camera_group.custom_draw(player)
             UI.updateUI(dt)
             pygame.display.update()
