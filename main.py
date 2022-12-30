@@ -1,9 +1,14 @@
-import sys
-import pygame
 import math
-from button import Button, ButtonGroup
-from assets.scripts.path_module import path_to_file
+import sys
+
+import pygame
+import pygame_gui
+from pygame_gui.core import ObjectID
 from pytmx.util_pygame import load_pygame
+
+from assets.scripts.path_module import path_to_file
+from button import Button, ButtonGroup
+from ui import IngameUI
 
 level_size = (95 * 32, 95 * 32)
  
@@ -122,7 +127,7 @@ class CameraGroup(pygame.sprite.Group):
 
 
 class Game:
-    FPS = 60
+    FPS = 250
 
     def __init__(self, width, height) -> None:
         pygame.init()
@@ -207,6 +212,7 @@ class Game:
     def play_screen(self):
         # Сбрасываем экран, загружаем карту и создаём персонажа
         self.screen.fill(0)
+        UI = IngameUI(self.screen.get_size())
         tmx_data = load_pygame('assets/maps/Map.tmx')
         player = Player((800, 640))
 
@@ -229,6 +235,10 @@ class Game:
         ground_sprite.image = ground_surface
         ground_sprite.rect = ground_surface.get_rect()
 
+        # Инициализация интерфейса
+        UI.initUI()
+        UI.startTimer(15)
+
         # Создаём группу спрайтов, которая будет служить камерой
         camera_group = CameraGroup(ground_sprite, player)
         while True:
@@ -239,11 +249,13 @@ class Game:
                 elif event.type == pygame.MOUSEWHEEL:
                     camera_group.zoom_scale = max(min(camera_group.zoom_scale + event.y * 0.03, 1.09), 0.52)
 
+                UI.manager.process_events(event)
             # Обновляем местоположение игрока и отрисовываем камеру в зависимости от него.
-            self.clock.tick(self.FPS)
+            dt = self.clock.tick(self.FPS)
             # self.screen.fill(0) убирает бесконечную стену и ставит чёрный бордер
             player.update(border_tiles)
             camera_group.custom_draw(player)
+            UI.updateUI(dt)
             pygame.display.update()
 
 
