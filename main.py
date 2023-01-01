@@ -7,92 +7,11 @@ from pygame_gui.core import ObjectID
 from pytmx.util_pygame import load_pygame
 
 from assets.scripts.path_module import path_to_file
+from assets.sprites.sprite import *
 from button import Button, ButtonGroup
 from ui import IngameUI
 
 level_size = (95 * 32, 95 * 32)
- 
-class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, *groups):
-        super().__init__(*groups)
-        image = pygame.image.load('assets/sprites/Character.png').convert_alpha()
-        self.originalImage = pygame.transform.scale(image, (64, 64))
-        self.image = self.originalImage.copy()
-        self.rect = self.image.get_rect(topleft=pos)
-        
-        # Характеристики
-        self.speed = 6
-        self.health = 15
-        self.is_moving = False
-
-        # Вектор движения, вектор наклона
-        self.direction = pygame.math.Vector2()
-        self.rotation = pygame.math.Vector2(0, -1)
-
-    def getInput(self):
-        keys = pygame.key.get_pressed()
-
-        # Ускорение на Shift
-        if keys[pygame.K_LSHIFT]:
-            self.speed = 12
-        else:
-            self.speed = 6
-        
-        # Проверка движения
-        if keys[pygame.K_w]:
-            self.direction.y = -1
-        elif keys[pygame.K_s]:
-            self.direction.y = 1
-        else:
-            self.direction.y = 0
-        
-        if keys[pygame.K_a]:
-            self.direction.x = -1
-        elif keys[pygame.K_d]:
-            self.direction.x = 1
-        else:
-            self.direction.x = 0
-    
-    def getAngle(self):
-        """Получить угол наклона в градусах из вектора наклона"""
-
-        # Перед координатой Y стоит унарный минус потому что координаты
-        # в pygame работают по уё.. другому.
-        return math.degrees(math.atan2(self.rotation.x, -self.rotation.y))
-
-    def tweenRotation(self):
-        """Что-то типо 'анимации' вектора наклона в сторону вектора движения"""
-        self.rotation = self.rotation.lerp(self.direction, 0.09)
-
-    def update(self, border) -> None:
-        self.getInput()
-
-        if self.direction:
-            self.is_moving = True
-
-            # Наклон спрайта (Изменить вектор наклона, получить угол, повернуть изображение, поставить на прошлое место)
-            self.tweenRotation()
-            newDegree = -self.getAngle()
-            self.image = pygame.transform.rotate(self.originalImage, newDegree)
-            self.rect = self.image.get_rect(center=self.rect.center)
-
-            # Движение (Тут всё понятно)
-            self.direction.normalize_ip()
-            newPos = self.rect.center + self.direction * self.speed
-            for rect in border:
-                if rect.collidepoint(newPos):
-                    return False
-            self.rect.center = newPos
-        else:
-            self.is_moving = False
-
-
-class Tile(pygame.sprite.Sprite):
-    def __init__(self, layer, pos, surf, *groups):
-        super().__init__(*groups)
-        self.image = surf
-        self.rect = surf.get_rect(topleft=pos)
-        self.layer = layer
 
 
 class CameraGroup(pygame.sprite.Group):
@@ -134,28 +53,8 @@ class CameraGroup(pygame.sprite.Group):
         self.display_surface.blit(scaled_surf, scaled_rect)
 
 
-class EntityShadow(pygame.sprite.Sprite):
-    def __init__(self, sprite, *groups) -> None:
-        super().__init__(*groups)
-        self.offset_vector = pygame.math.Vector2(25, 25)
-        self.connected_sprite = sprite
-        self.update_shadow(force=True)
-
-    def update_shadow(self, force=False):
-        if self.connected_sprite.is_moving or force:
-            mask = pygame.mask.from_surface(self.connected_sprite.image)
-            mask_polygon = mask.outline()
-            surface = pygame.Surface(mask.get_size(), pygame.SRCALPHA)
-            pygame.draw.polygon(surface, (0, 0, 0, 128), mask_polygon)
-            self.image = surface
-            self.rect = surface.get_rect(center=self.connected_sprite.rect.center + self.offset_vector)
-
-    def update(self) -> None:
-        self.update_shadow()
-
-
 class Game:
-    FPS = 250
+    FPS = 60
 
     def __init__(self, width, height) -> None:
         pygame.init()
@@ -240,6 +139,8 @@ class Game:
     def play_screen(self):
         # Сбрасываем экран, загружаем карту и создаём персонажа
         self.screen.fill(0)
+        pygame.display.update()
+
         UI = IngameUI(self.screen.get_size())
         tmx_data = load_pygame('assets/maps/Map.tmx')
         player = Player((800, 640))
@@ -248,10 +149,10 @@ class Game:
         # Создаём список всех Tile'ов и список стен для коллизий игрока.
         tiles = list()
         border_tiles = list()
-        for layer in tmx_data.visible_layers:
+        for layerIndex, layer in enumerate(tmx_data.visible_layers):
             if hasattr(layer, 'data'):
                 for x, y, surf in layer.tiles():
-                    tile = Tile(layer.name, (x * 32, y * 32), surf)
+                    tile = Tile(layerIndex, (x * 32, y * 32), surf)
                     if layer.name == 'Стены' and tmx_data.get_tile_properties(x, y, 2).get('class', None) == 'Препятствие':
                         border_tiles.append(tile.rect)
                     tiles.append(tile)
@@ -266,11 +167,10 @@ class Game:
 
         # Инициализация интерфейса
         UI.initUI()
-        UI.startTimer(15)
+        UI.startTimer(90)
 
         # Создаём группу спрайтов, которая будет служить камерой
         camera_group = CameraGroup(ground_sprite, player_shadow, player)
-        print(camera_group.sprites())
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -280,11 +180,12 @@ class Game:
                     camera_group.zoom_scale = max(min(camera_group.zoom_scale + event.y * 0.03, 1.09), 0.52)
 
                 UI.manager.process_events(event)
+
             # Обновляем местоположение игрока и отрисовываем камеру в зависимости от него.
             dt = self.clock.tick(self.FPS)
             # self.screen.fill(0) убирает бесконечную стену и ставит чёрный бордер
             player.update(border_tiles)
-            player_shadow.update_shadow()
+            player_shadow.update()
             camera_group.custom_draw(player)
             UI.updateUI(dt)
             pygame.display.update()
