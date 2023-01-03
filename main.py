@@ -11,7 +11,9 @@ from assets.sprites.sprite import *
 from button import Button, ButtonGroup
 from ui import IngameUI
 
-level_size = (95 * 32, 95 * 32)
+
+TILE_WIDTH = TILE_HEIGHT = 32
+LEVEL_SIZE = (95 * TILE_WIDTH, 95 * TILE_HEIGHT)
 
 
 class CameraGroup(pygame.sprite.Group):
@@ -26,7 +28,7 @@ class CameraGroup(pygame.sprite.Group):
 
         # Всё для зума
         self.zoom_scale = 1
-        self.internal_surf_size = (2500, 2500)
+        self.internal_surf_size = (1280 * 1.4, 720 * 1.4)
         self.internal_surf = pygame.Surface(self.internal_surf_size, pygame.SRCALPHA)
         self.internal_rect = self.internal_surf.get_rect(center=(self.half_w, self.half_h))
         self.internal_surf_size_vector = pygame.math.Vector2(self.internal_surf_size)
@@ -41,8 +43,8 @@ class CameraGroup(pygame.sprite.Group):
 
     def custom_draw(self, player):
         self.center_target_camera(player)
-
         self.internal_surf.fill(0)
+
         for sprite in self.sprites():
             offsetPos = sprite.rect.topleft - self.offset + self.internal_offset
             self.internal_surf.blit(sprite.image, offsetPos)
@@ -54,7 +56,7 @@ class CameraGroup(pygame.sprite.Group):
 
 
 class Game:
-    FPS = 60
+    FPS = 144
 
     def __init__(self, width, height) -> None:
         pygame.init()
@@ -143,50 +145,74 @@ class Game:
 
         UI = IngameUI(self.screen.get_size())
         tmx_data = load_pygame('assets/maps/Map.tmx')
-        player = Player((800, 640))
-        player_shadow = EntityShadow(player)
 
-        # Создаём список всех Tile'ов и список стен для коллизий игрока.
-        tiles = list()
+        # Создаём словарь с tile'ами разных слоёв
+        tiles = dict()
         border_tiles = list()
         for layerIndex, layer in enumerate(tmx_data.visible_layers):
-            if hasattr(layer, 'data'):
+            tiles[layerIndex] = list()
+            if hasattr(layer, 'data'):  # Слой с плитками
                 for x, y, surf in layer.tiles():
-                    tile = Tile(layerIndex, (x * 32, y * 32), surf)
+                    tile = Tile(layerIndex, (x * TILE_WIDTH, y * TILE_HEIGHT), surf)
                     if layer.name == 'Стены' and tmx_data.get_tile_properties(x, y, 2).get('class', None) == 'Препятствие':
                         border_tiles.append(tile.rect)
-                    tiles.append(tile)
+                    tiles[layerIndex].append(tile)
+            else:  # Слой с объектами
+                pass # NotImplemented, игнорированы
 
-        ground_surface = pygame.Surface(level_size)
-        for tile in tiles:
-            ground_surface.blit(tile.image, tile.rect)
+        
+        # Создаём список со спрайтами слоёв
+        all_map_sprites = list()
+        for i, tile_set in tiles.items():
+            layer_surf = pygame.Surface(LEVEL_SIZE, pygame.SRCALPHA)
+            for tile in tile_set:
+                layer_surf.blit(tile.image, tile.rect)
+            layer_sprite = pygame.sprite.Sprite()
+            if i == 0:
+                layer_surf = layer_surf.convert()
+            else:
+                layer_surf = layer_surf.convert_alpha()
+            layer_sprite.image = layer_surf
+            layer_sprite.rect = pygame.Rect(0, 0, *LEVEL_SIZE)
+            all_map_sprites.append(layer_sprite)
 
-        ground_sprite = pygame.sprite.Sprite()
-        ground_sprite.image = ground_surface
-        ground_sprite.rect = ground_surface.get_rect()
+        # В целях оптимизации лепим всё на 1 слой.
+        whole_level = pygame.Surface(LEVEL_SIZE)
+        for sprite in all_map_sprites:
+            whole_level.blit(sprite.image, sprite.rect)
+        whole_sprite = pygame.sprite.Sprite()
+        whole_sprite.image = whole_level.convert()
+        whole_sprite.rect = whole_level.get_rect(topleft=(0, 0))
 
         # Инициализация интерфейса
         UI.initUI()
         UI.startTimer(90)
 
+        player = Player((800, 640), border_tiles)
+        player_shadow = EntityShadow(player)
+
         # Создаём группу спрайтов, которая будет служить камерой
-        camera_group = CameraGroup(ground_sprite, player_shadow, player)
+        camera_group = CameraGroup(whole_sprite, player_shadow, player)
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.MOUSEWHEEL:
-                    camera_group.zoom_scale = max(min(camera_group.zoom_scale + event.y * 0.03, 1.09), 0.52)
+                    camera_group.zoom_scale = max(min(camera_group.zoom_scale + event.y * 0.03, 0.73 * 2), 0.73)
+                    print(camera_group.zoom_scale)
 
                 UI.manager.process_events(event)
 
             # Обновляем местоположение игрока и отрисовываем камеру в зависимости от него.
             dt = self.clock.tick(self.FPS)
             # self.screen.fill(0) убирает бесконечную стену и ставит чёрный бордер
-            player.update(border_tiles)
+            player.update(dt)
             player_shadow.update()
+            t1 = time.perf_counter()
             camera_group.custom_draw(player)
+            t2 = time.perf_counter()
+            # print(f'{t2-t1=}')
             UI.updateUI(dt)
             pygame.display.update()
 

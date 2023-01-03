@@ -1,12 +1,18 @@
 import math
 
 import pygame
+import time
 from os.path import join
 from pygame.sprite import Sprite
 
 
 class Player(Sprite):
-    def __init__(self, pos, *groups):
+    accelerated_speed = 900
+    regular_speed = 500
+    turning_speed = 5
+    max_health = 15
+
+    def __init__(self, pos, collideables=None, *groups):
         super().__init__(*groups)
         image = pygame.image.load(join('assets', 'sprites', 'Character.png')).convert_alpha()
         self.originalImage = pygame.transform.scale(image, (64, 64))
@@ -14,22 +20,26 @@ class Player(Sprite):
         self.rect = self.image.get_rect(topleft=pos)
 
         # Характеристики
-        self.speed = 6
-        self.health = 15
+        self.collideables = collideables
+        self.speed = self.regular_speed
+        self.health = self.max_health
         self.is_moving = False
 
         # Вектор движения, вектор наклона
         self.direction = pygame.math.Vector2()
         self.rotation = pygame.math.Vector2(0, -1)
 
+    def setCollisions(self, border: list[pygame.Rect]) -> None:
+        self.collideables = border
+
     def getInput(self):
         keys = pygame.key.get_pressed()
 
         # Ускорение на Shift
         if keys[pygame.K_LSHIFT]:
-            self.speed = 12
+            self.speed = self.accelerated_speed
         else:
-            self.speed = 6
+            self.speed = self.regular_speed
 
         # Проверка движения
         if keys[pygame.K_w]:
@@ -53,28 +63,29 @@ class Player(Sprite):
         # в pygame работают по уё.. другому.
         return math.degrees(math.atan2(self.rotation.x, -self.rotation.y))
 
-    def tweenRotation(self):
+    def tweenRotation(self, dt):
         """Что-то типо 'анимации' вектора наклона в сторону вектора движения"""
-        self.rotation = self.rotation.lerp(self.direction, 0.09)
+        self.rotation = self.rotation.lerp(self.direction, self.turning_speed * dt / 1000)
 
-    def update(self, border) -> None:
+    def update(self, dt) -> None:
         self.getInput()
 
         if self.direction:
             self.is_moving = True
 
             # Наклон спрайта (Изменить вектор наклона, получить угол, повернуть изображение, поставить на прошлое место)
-            self.tweenRotation()
+            self.tweenRotation(dt)
             newDegree = -self.getAngle()
             self.image = pygame.transform.rotate(self.originalImage, newDegree)
             self.rect = self.image.get_rect(center=self.rect.center)
 
-            # Движение (Тут всё понятно)
             self.direction.normalize_ip()
-            newPos = self.rect.center + self.direction * self.speed
-            for rect in border:
-                if rect.collidepoint(newPos):
-                    return False
+            newPos = self.rect.center + (self.direction * self.speed * dt / 1000)
+            if self.collideables:
+                for rect in self.collideables:
+                    if rect.collidepoint(newPos):
+                        return False
+
             self.rect.center = newPos
         else:
             self.is_moving = False
