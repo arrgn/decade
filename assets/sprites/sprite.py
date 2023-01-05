@@ -5,6 +5,8 @@ import time
 from os.path import join
 from pygame.sprite import Sprite
 
+TILE_WIDTH = TILE_HEIGHT = 32
+LEVEL_WIDTH, LEVEL_HEIGHT = 95 * TILE_WIDTH, 95 * TILE_HEIGHT
 
 class Player(Sprite):
     accelerated_speed = 900
@@ -100,7 +102,7 @@ class Tile(Sprite):
 
 
 class StaticShadow(Sprite):
-    """Базовый класс для теней. Создаёт статичную тень"""
+    """Создаёт статичную тень объекта путём сдвига и обесцвечивания спрайта. Оптимизирован"""
     offset = pygame.math.Vector2(12, 12)
 
     def __init__(self, sprite, *groups) -> None:
@@ -116,6 +118,40 @@ class StaticShadow(Sprite):
         return image, rect
 
 
+class VectorShadow(Sprite):
+    """
+        Создаёт векторную тень. precise=True/False для карт, объектов соответственно.
+        Во втором случае обязателен tile_size
+    """
+
+    def __init__(self, map_sprite: Sprite, sun_vector: pygame.Vector2, height_multiplier: float, *groups) -> Sprite:
+        super().__init__(*groups)
+        self.image, self.rect = self.calculateShadow(map_sprite, sun_vector, height_multiplier)
+
+    @classmethod
+    def calculateShadow(cls, sprite, sun_vector, height_multiplier, precise=True, tile_size=None):
+        map_mask = pygame.mask.from_surface(sprite.image)
+        map_mask.invert()
+        map_outline = map_mask.outline()
+        if not precise:
+            assert tile_size
+            pass  # TODO В будущем для теней от построек. Будет НАМНОГО оптимизированней, но не таким точным.
+
+        shadow_outline = [0] * len(map_outline)
+        for i, point in enumerate(map_outline):
+            pointVector = pygame.math.Vector2(point)
+            shadowPoint = pointVector.lerp(sun_vector, height_multiplier)
+            shadowPoint = pointVector + pointVector - shadowPoint
+            shadow_outline[i] = shadowPoint.x, shadowPoint.y
+
+        newSurface = pygame.Surface(map_mask.get_size(), pygame.SRCALPHA)
+        for i in range(len(map_outline) - 1):
+            polygon = map_outline[i], map_outline[i + 1], shadow_outline[i + 1], shadow_outline[i]
+            pygame.draw.polygon(newSurface, (0, 0, 0, 128), polygon)
+
+        return newSurface, newSurface.get_rect()
+
+
 class EntityShadow(StaticShadow):
     """Класс для динамичных теней. Требует наличия атрибута is_moving в целях оптимизации"""
     offset = pygame.math.Vector2(12, 15)
@@ -128,6 +164,5 @@ class EntityShadow(StaticShadow):
     def update(self):
         if self.sprite.is_moving:
             self.image, self.rect = self.get_shadow()
-
 
 del Sprite

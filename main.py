@@ -14,6 +14,7 @@ from ui import IngameUI
 
 TILE_WIDTH = TILE_HEIGHT = 32
 LEVEL_SIZE = (95 * TILE_WIDTH, 95 * TILE_HEIGHT)
+SUN_POSITION = pygame.math.Vector2(7000, -5000)
 
 
 class CameraGroup(pygame.sprite.Group):
@@ -176,10 +177,15 @@ class Game:
             layer_sprite.rect = pygame.Rect(0, 0, *LEVEL_SIZE)
             all_map_sprites.append(layer_sprite)
 
+        # Выбираем спрайт теней и создаём от него тень
+        wall_sprite = all_map_sprites[2]
+        map_shadow = VectorShadow(wall_sprite, SUN_POSITION, height_multiplier=0.004)
+
         # В целях оптимизации лепим всё на 1 слой.
         whole_level = pygame.Surface(LEVEL_SIZE)
-        for sprite in all_map_sprites:
+        for sprite in all_map_sprites[:2]:
             whole_level.blit(sprite.image, sprite.rect)
+        whole_level.blit(map_shadow.image, map_shadow.rect)
         whole_sprite = pygame.sprite.Sprite()
         whole_sprite.image = whole_level.convert()
         whole_sprite.rect = whole_level.get_rect(topleft=(0, 0))
@@ -192,7 +198,7 @@ class Game:
         player_shadow = EntityShadow(player)
 
         # Создаём группу спрайтов, которая будет служить камерой
-        camera_group = CameraGroup(whole_sprite, player_shadow, player)
+        camera_group = CameraGroup(whole_sprite, player_shadow, wall_sprite, player)
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -200,7 +206,6 @@ class Game:
                     sys.exit()
                 elif event.type == pygame.MOUSEWHEEL:
                     camera_group.zoom_scale = max(min(camera_group.zoom_scale + event.y * 0.03, 0.73 * 2), 0.73)
-                    print(camera_group.zoom_scale)
 
                 UI.manager.process_events(event)
 
