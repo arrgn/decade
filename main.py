@@ -14,7 +14,7 @@ from ui import IngameUI
 
 TILE_WIDTH = TILE_HEIGHT = 32
 LEVEL_SIZE = (95 * TILE_WIDTH, 95 * TILE_HEIGHT)
-SUN_POSITION = pygame.math.Vector2(7000, -5000)
+SUN_POSITION = pygame.math.Vector2(-7000, -5000)
 
 
 class CameraGroup(pygame.sprite.Group):
@@ -42,8 +42,8 @@ class CameraGroup(pygame.sprite.Group):
         self.offset.x = target.rect.centerx - self.half_w
         self.offset.y = target.rect.centery - self.half_h
 
-    def custom_draw(self, player):
-        self.center_target_camera(player)
+    def custom_draw(self, centerfrom):
+        self.center_target_camera(centerfrom)
         self.internal_surf.fill(0)
 
         for sprite in self.sprites():
@@ -103,7 +103,7 @@ class Game:
         # Запускаем музочку.
         pygame.mixer.music.load(path_to_file('assets', 'music', 'Waterfall.mp3'))
         pygame.mixer.music.play(3)
-        pygame.mixer.music.set_volume(0.2)
+        pygame.mixer.music.set_volume(0.1)
 
         # Main loop
         while True:
@@ -192,7 +192,7 @@ class Game:
 
         # Инициализация интерфейса
         UI.initUI()
-        UI.startTimer(90)
+        UI.start_timer(90)
 
         player = Player((800, 640), border_tiles)
         player_shadow = EntityShadow(player)
@@ -206,19 +206,20 @@ class Game:
                     sys.exit()
                 elif event.type == pygame.MOUSEWHEEL:
                     camera_group.zoom_scale = max(min(camera_group.zoom_scale + event.y * 0.03, 0.73 * 2), 0.73)
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        UI.pause_game()
+                        self.clock.tick(999)  # Иначе следующий dt будет равен времени паузы.
 
                 UI.manager.process_events(event)
 
             # Обновляем местоположение игрока и отрисовываем камеру в зависимости от него.
-            dt = self.clock.tick(self.FPS)
+            dt = self.clock.tick(self.FPS) 
             # self.screen.fill(0) убирает бесконечную стену и ставит чёрный бордер
             player.update(dt)
             player_shadow.update()
-            t1 = time.perf_counter()
-            camera_group.custom_draw(player)
-            t2 = time.perf_counter()
-            # print(f'{t2-t1=}')
-            UI.updateUI(dt)
+            camera_group.custom_draw(centerfrom=player)
+            UI.update_UI(dt)
             pygame.display.update()
 
 

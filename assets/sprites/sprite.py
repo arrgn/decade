@@ -67,7 +67,7 @@ class Player(Sprite):
 
     def tweenRotation(self, dt):
         """Что-то типо 'анимации' вектора наклона в сторону вектора движения"""
-        self.rotation = self.rotation.lerp(self.direction, self.turning_speed * dt / 1000)
+        self.rotation = self.rotation.lerp(self.direction, min(self.turning_speed * dt / 1000, 1))
 
     def update(self, dt) -> None:
         self.getInput()
