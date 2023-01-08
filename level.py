@@ -52,6 +52,7 @@ class LevelLoader:
 
         # Выбираем спрайт теней и создаём от него тень
         wall_sprite = all_map_sprites[2]
+        all_map_sprites[2].mask = pygame.mask.from_surface(wall_sprite.image)
         map_shadow = VectorShadow(wall_sprite, cls.SUN_POSITION, height_multiplier=0.004)
 
         # В целях оптимизации лепим всё на 1 слой.

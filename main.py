@@ -159,21 +159,29 @@ class Game:
                 elif event.type == pygame_gui.UI_BUTTON_PRESSED:
                     obj_id = event.ui_object_id
                     hash_index = obj_id.rfind('#')
-                    if obj_id.startswith('panel.#'):  # Кнопки категорий
+                    if obj_id.startswith('panel.#'):
+                        # Кнопки категорий
                         building_type = obj_id[hash_index + 1:]
                         container = building_type.lower() + '_container'
                         UI.show_build_container(container)
-                    elif obj_id.startswith('panel.scrolling_container.#'):  # Кнопки зданий внутри категорий
+                    elif obj_id.startswith('panel.scrolling_container.#'):
+                        # Кнопки зданий внутри категорий
                         building_name = obj_id[hash_index + 1:].replace('_', ' ')
-                        print('requesting', building_name)
                         building = BUILDER.get_by_name(building_name)
                         camera_group.project_building(building)
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == pygame.BUTTON_LEFT:
-                        if camera_group.projection:
-                            BUILDER.place(camera_group.projection)
-                            camera_group.remove(camera_group.projection)
-                            camera_group.projection = None
+                        # Если здание выбрано к стройке и клик был не на UI
+                        if not pygame.Rect(980, 0, 300, 720).contains(*event.pos, 1, 1) and camera_group.projection:
+                            # Если не пересекается с другими зданиями
+                            if camera_group.projection.rect.collidelist(BUILDER.taken_territory) == -1:
+                                # Если находится на земле
+                                if not pygame.sprite.collide_mask(LevelLoader.ordered_level_sprites[2], camera_group.projection):
+                                    # Если не за картой
+                                    if pygame.Rect(0, 0, 3040, 3040).contains(camera_group.projection.rect):
+                                        BUILDER.place(camera_group.projection)
+                                        camera_group.remove(camera_group.projection)
+                                        camera_group.projection = None
                         
                 # elif event.type == pygame.MOUSEBUTTONDOWN:
                 #     if event.button == pygame.BUTTON_RIGHT:

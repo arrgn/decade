@@ -37,6 +37,7 @@ def init(level_size):
         # Данные об уровне
         build_registry = list()
         built_buildings = list()
+        taken_territory = list()
         locked = False
 
         @classmethod
@@ -67,6 +68,7 @@ def init(level_size):
 
             cls.building_sprite.image = cls.buildings_surface
             cls.built_buildings.append(building)
+            cls.taken_territory.append(building.rect)
 
 
     @dataclass(init=False, unsafe_hash=True)
