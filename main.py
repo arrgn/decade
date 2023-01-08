@@ -138,6 +138,7 @@ class Game:
         self.screen.fill(0)
         LevelLoader.load(1)
         BUILDER = BuilderInit((3040, 3040))
+        Bullet.init()
         UI = IngameUI(self.screen.get_size())
         UI.initUI()
         UI.start_timer(90)
@@ -147,6 +148,9 @@ class Game:
 
         # Создаём группу спрайтов, которая будет служить камерой
         camera_group = CameraGroup(LevelLoader.whole_map, player_shadow, player, BUILDER.building_sprite)
+        bullet_group = pygame.sprite.Group()
+        mob_group = pygame.sprite.Group()
+
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -172,7 +176,7 @@ class Game:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == pygame.BUTTON_LEFT:
                         # Если здание выбрано к стройке и клик был не на UI
-                        if not pygame.Rect(980, 0, 300, 720).contains(*event.pos, 1, 1) and camera_group.projection:
+                        if camera_group.projection and not pygame.Rect(980, 0, 300, 720).contains(*event.pos, 1, 1):
                             # Если не пересекается с другими зданиями
                             if camera_group.projection.rect.collidelist(BUILDER.taken_territory) == -1:
                                 # Если находится на земле
@@ -182,6 +186,13 @@ class Game:
                                         BUILDER.place(camera_group.projection)
                                         camera_group.remove(camera_group.projection)
                                         camera_group.projection = None
+                        elif not pygame.Rect(980, 0, 300, 720).contains(*event.pos, 1, 1):
+                            bullet = player.shoot()
+                            bullet_group.add(bullet)
+                            camera_group.add(bullet)
+                        # Стрельба в противном случае
+
+                        
                         
                 # elif event.type == pygame.MOUSEBUTTONDOWN:
                 #     if event.button == pygame.BUTTON_RIGHT:
@@ -199,6 +210,7 @@ class Game:
             dt = self.clock.tick(self.FPS) 
             player.update(dt)
             player_shadow.update()
+            bullet_group.update(dt / 1000)
             camera_group.custom_draw(centerfrom=player)
             UI.update_UI(dt)
             pygame.display.update()

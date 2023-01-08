@@ -3,10 +3,35 @@ import math
 import pygame
 import time
 from os.path import join
-from pygame.sprite import Sprite
+from pygame.sprite import Sprite, Group
 
 TILE_WIDTH = TILE_HEIGHT = 32
 LEVEL_WIDTH, LEVEL_HEIGHT = 95 * TILE_WIDTH, 95 * TILE_HEIGHT
+
+
+class Bullet(Sprite):
+    texture = None
+    speed = 800
+    display_layer = 5
+
+    def __init__(self, pos, *groups) -> None:
+        super().__init__(*groups)
+        self.direction = pygame.math.Vector2(pygame.mouse.get_pos()) - (self.half_w, self.half_h)
+        self.direction.scale_to_length(1)
+        rotate_angle = math.degrees(math.atan2(self.direction.x, self.direction.y))
+
+        scaled_image = pygame.transform.scale(self.texture, (16, 32))
+        self.image = pygame.transform.rotate(scaled_image, rotate_angle)
+        self.rect = self.image.get_rect(center=pos)
+
+    def update(self, dt):
+        self.rect.center += self.direction * self.speed * dt
+
+    @classmethod
+    def init(cls):
+        cls.half_w, cls.half_h = map(lambda x: x // 2, pygame.display.get_surface().get_size())
+        cls.texture = pygame.image.load(join('assets', 'sprites', 'BulletSprite.png')).convert_alpha()
+
 
 class Player(Sprite):
     accelerated_speed = 900
@@ -58,6 +83,9 @@ class Player(Sprite):
             self.direction.x = 1
         else:
             self.direction.x = 0
+
+    def shoot(self):
+        return Bullet(self.rect.center)
 
     def getAngle(self):
         """Получить угол наклона в градусах из вектора наклона"""
@@ -167,4 +195,4 @@ class EntityShadow(StaticShadow):
         if self.sprite.is_moving:
             self.image, self.rect = self.get_shadow()
 
-del Sprite
+del Sprite, Group
