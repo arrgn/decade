@@ -3,57 +3,51 @@ import sys
 
 import pygame
 import pygame_gui
-from pygame_gui.core import ObjectID
-from pytmx.util_pygame import load_pygame
 
 from assets.scripts.path_module import path_to_file
 from assets.sprites.sprite import *
+from building import init as BuilderInit
 from button import Button, ButtonGroup
+from level import LevelLoader
 from ui import IngameUI
-
-
-TILE_WIDTH = TILE_HEIGHT = 32
-LEVEL_SIZE = (95 * TILE_WIDTH, 95 * TILE_HEIGHT)
-SUN_POSITION = pygame.math.Vector2(-7000, -5000)
 
 
 class CameraGroup(pygame.sprite.Group):
     def __init__(self, *sprites) -> None:
         super().__init__(*sprites)
         self.display_surface = pygame.display.get_surface()
+        self.projection = None
 
         # Смещение камеры
         self.offset = pygame.math.Vector2()
         self.half_w = self.display_surface.get_width() // 2
         self.half_h = self.display_surface.get_height() // 2
 
-        # Всё для зума
-        self.zoom_scale = 1
-        self.internal_surf_size = (1280 * 1.4, 720 * 1.4)
-        self.internal_surf = pygame.Surface(self.internal_surf_size, pygame.SRCALPHA)
-        self.internal_rect = self.internal_surf.get_rect(center=(self.half_w, self.half_h))
-        self.internal_surf_size_vector = pygame.math.Vector2(self.internal_surf_size)
-        self.internal_offset = pygame.math.Vector2()
-        self.internal_offset.x = self.internal_surf_size[0] // 2 - self.half_w
-        self.internal_offset.y = self.internal_surf_size[1] // 2 - self.half_h
+    def project_building(self, building):
+        if self.projection:
+            self.remove(self.projection)
+            self.projection = None
+        cursor_pos = pygame.mouse.get_pos() + self.offset
+        building.rect = building.image.get_rect(topleft=(cursor_pos[0] // 32 * 32, cursor_pos[1] // 32 * 32))
+        self.projection = building
+        self.add(building)
 
     def center_target_camera(self, target: pygame.sprite.Sprite) -> None:
-        """Центрируем камеру на спрайте target"""
+        """Центрируем камеру на спрайте target и обновляем коорды проекции"""
         self.offset.x = target.rect.centerx - self.half_w
         self.offset.y = target.rect.centery - self.half_h
+        if self.projection:
+            # print(self.projection, len(self.sprites()))
+            cursor_pos = pygame.mouse.get_pos() + self.offset
+            self.projection.rect.topleft = cursor_pos[0] // 32 * 32, cursor_pos[1] // 32 * 32
 
     def custom_draw(self, centerfrom):
         self.center_target_camera(centerfrom)
-        self.internal_surf.fill(0)
+        self.display_surface.fill(0)
 
-        for sprite in self.sprites():
-            offsetPos = sprite.rect.topleft - self.offset + self.internal_offset
-            self.internal_surf.blit(sprite.image, offsetPos)
-
-        scaled_surf = pygame.transform.scale(self.internal_surf, self.internal_surf_size_vector * self.zoom_scale)
-        scaled_rect = scaled_surf.get_rect(center=(self.half_w, self.half_h))
-
-        self.display_surface.blit(scaled_surf, scaled_rect)
+        for sprite in sorted(self.sprites(), key=lambda x: x.display_layer):
+            offsetPos = sprite.rect.topleft - self.offset
+            self.display_surface.blit(sprite.image, offsetPos)
 
 
 class Game:
@@ -142,80 +136,59 @@ class Game:
     def play_screen(self):
         # Сбрасываем экран, загружаем карту и создаём персонажа
         self.screen.fill(0)
-        pygame.display.update()
-
+        LevelLoader.load(1)
+        BUILDER = BuilderInit((3040, 3040))
         UI = IngameUI(self.screen.get_size())
-        tmx_data = load_pygame('assets/maps/Map.tmx')
-
-        # Создаём словарь с tile'ами разных слоёв
-        tiles = dict()
-        border_tiles = list()
-        for layerIndex, layer in enumerate(tmx_data.visible_layers):
-            tiles[layerIndex] = list()
-            if hasattr(layer, 'data'):  # Слой с плитками
-                for x, y, surf in layer.tiles():
-                    tile = Tile(layerIndex, (x * TILE_WIDTH, y * TILE_HEIGHT), surf)
-                    if layer.name == 'Стены' and tmx_data.get_tile_properties(x, y, 2).get('class', None) == 'Препятствие':
-                        border_tiles.append(tile.rect)
-                    tiles[layerIndex].append(tile)
-            else:  # Слой с объектами
-                pass # NotImplemented, игнорированы
-
-        
-        # Создаём список со спрайтами слоёв
-        all_map_sprites = list()
-        for i, tile_set in tiles.items():
-            layer_surf = pygame.Surface(LEVEL_SIZE, pygame.SRCALPHA)
-            for tile in tile_set:
-                layer_surf.blit(tile.image, tile.rect)
-            layer_sprite = pygame.sprite.Sprite()
-            if i == 0:
-                layer_surf = layer_surf.convert()
-            else:
-                layer_surf = layer_surf.convert_alpha()
-            layer_sprite.image = layer_surf
-            layer_sprite.rect = pygame.Rect(0, 0, *LEVEL_SIZE)
-            all_map_sprites.append(layer_sprite)
-
-        # Выбираем спрайт теней и создаём от него тень
-        wall_sprite = all_map_sprites[2]
-        map_shadow = VectorShadow(wall_sprite, SUN_POSITION, height_multiplier=0.004)
-
-        # В целях оптимизации лепим всё на 1 слой.
-        whole_level = pygame.Surface(LEVEL_SIZE)
-        for sprite in all_map_sprites[:2]:
-            whole_level.blit(sprite.image, sprite.rect)
-        whole_level.blit(map_shadow.image, map_shadow.rect)
-        whole_sprite = pygame.sprite.Sprite()
-        whole_sprite.image = whole_level.convert()
-        whole_sprite.rect = whole_level.get_rect(topleft=(0, 0))
-
-        # Инициализация интерфейса
         UI.initUI()
         UI.start_timer(90)
 
-        player = Player((800, 640), border_tiles)
+        player = Player((800, 640), LevelLoader.collision_rects)
         player_shadow = EntityShadow(player)
 
         # Создаём группу спрайтов, которая будет служить камерой
-        camera_group = CameraGroup(whole_sprite, player_shadow, wall_sprite, player)
+        camera_group = CameraGroup(LevelLoader.whole_map, player_shadow, player, BUILDER.building_sprite)
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                elif event.type == pygame.MOUSEWHEEL:
-                    camera_group.zoom_scale = max(min(camera_group.zoom_scale + event.y * 0.03, 0.73 * 2), 0.73)
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         UI.pause_game()
                         self.clock.tick(999)  # Иначе следующий dt будет равен времени паузы.
+                elif event.type == pygame_gui.UI_BUTTON_PRESSED:
+                    obj_id = event.ui_object_id
+                    hash_index = obj_id.rfind('#')
+                    if obj_id.startswith('panel.#'):  # Кнопки категорий
+                        building_type = obj_id[hash_index + 1:]
+                        container = building_type.lower() + '_container'
+                        UI.show_build_container(container)
+                    elif obj_id.startswith('panel.scrolling_container.#'):  # Кнопки зданий внутри категорий
+                        building_name = obj_id[hash_index + 1:].replace('_', ' ')
+                        print('requesting', building_name)
+                        building = BUILDER.get_by_name(building_name)
+                        camera_group.project_building(building)
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == pygame.BUTTON_LEFT:
+                        if camera_group.projection:
+                            BUILDER.place(camera_group.projection)
+                            camera_group.remove(camera_group.projection)
+                            camera_group.projection = None
+                        
+                # elif event.type == pygame.MOUSEBUTTONDOWN:
+                #     if event.button == pygame.BUTTON_RIGHT:
+                #         test_building = BUILDER.get_by_name('Copper drill')
+                #         camera_group.project_building(test_building)
+                #     elif event.button == pygame.BUTTON_LEFT:
+                #         building = camera_group.projection
+                #         if building:
+                #             BUILDER.place(building)
+                #             camera_group.projection = None
 
                 UI.manager.process_events(event)
 
             # Обновляем местоположение игрока и отрисовываем камеру в зависимости от него.
             dt = self.clock.tick(self.FPS) 
-            # self.screen.fill(0) убирает бесконечную стену и ставит чёрный бордер
             player.update(dt)
             player_shadow.update()
             camera_group.custom_draw(centerfrom=player)

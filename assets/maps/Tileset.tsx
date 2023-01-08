@@ -55,6 +55,7 @@
  <tile id="51" class="Препятствие"/>
  <tile id="52" class="Поверхность"/>
  <tile id="53" class="Препятствие"/>
+ <tile id="54" class="Препятствие"/>
  <tile id="55" class="Поверхность"/>
  <tile id="56" class="Поверхность"/>
  <tile id="57" class="Поверхность"/>

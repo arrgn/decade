@@ -13,6 +13,7 @@ class Player(Sprite):
     regular_speed = 500
     turning_speed = 5
     max_health = 15
+    display_layer = 3
 
     def __init__(self, pos, collideables=None, *groups):
         super().__init__(*groups)
@@ -104,6 +105,7 @@ class Tile(Sprite):
 class StaticShadow(Sprite):
     """Создаёт статичную тень объекта путём сдвига и обесцвечивания спрайта. Оптимизирован"""
     offset = pygame.math.Vector2(12, 12)
+    display_layer = 2
 
     def __init__(self, sprite, *groups) -> None:
         super().__init__(*groups)

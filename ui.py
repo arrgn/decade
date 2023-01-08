@@ -1,6 +1,7 @@
 import pygame_gui
 import pygame
 import sys
+import os.path
 from pygame_gui.core import ObjectID
 from assets.scripts.path_module import path_to_file
 
@@ -24,7 +25,6 @@ class IngameUI:
         self.height = size[1]
 
     def initUI(self):
-
         # Главный интерфейс
         panel_rect = pygame.Rect(0, 0, 300, 100)
         panel_rect.midtop = (self.width // 2, 0)
@@ -41,6 +41,55 @@ class IngameUI:
                                                          container=self.panel,
                                                          object_id=ObjectID('toplabel', 'label'))
 
+        self.building_panel = pygame_gui.elements.UIPanel(pygame.Rect(-300, 0, 300, self.height // 2),
+                                                          manager=self.manager,
+                                                          anchors={'right':'right', 'top': 'top'})
+        self.viewport_panel = pygame_gui.elements.UIPanel(pygame.Rect(-300, -self.height // 2, 300, self.height // 2),
+                                                          manager=self.manager,
+                                                          anchors={'right': 'right', 'bottom': 'bottom'})
+
+        
+        self.itemcontainer2 = pygame_gui.elements.UIScrollingContainer(pygame.Rect(60, 0, 240, self.height // 2),
+                                                                      manager=self.manager,
+                                                                      container=self.building_panel,
+                                                                      parent_element=self.building_panel,
+                                                                      visible=False)
+
+        # Индексация
+        Placeables = {
+            'Harvester': ['Copper drill', 'Hematite drill', 'Titan drill'],
+            'Wall': ['Copper wall', 'Titan wall']
+        }
+
+        # Создаём кнопки категорий и контейнеры для них
+        for i, buttonId in enumerate(('Turret', 'Harvester', 'Energy', 'Wall', 'Conveyor', 'Factory')):
+            button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(0, 50 * i, 50, 50),
+                                                  text='',
+                                                  manager=self.manager,
+                                                  container=self.building_panel,
+                                                  object_id=ObjectID(object_id=f'#{buttonId}', class_id='@build_categories'))
+
+            container = pygame_gui.elements.UIScrollingContainer(pygame.Rect(60, 0, 240, self.height // 2),
+                                                                manager=self.manager,
+                                                                container=self.building_panel,
+                                                                parent_element=self.building_panel,
+                                                                visible=False)
+
+            setattr(self, f'{buttonId.lower()}_button', button)
+            setattr(self, f'{buttonId.lower()}_container', container)
+
+        # Создаём кнопки для каждой из категорий
+        for build_type, buildings in Placeables.items():
+            container = getattr(self, f'{build_type.lower()}_container')
+            for i, build in enumerate(buildings):
+                y, x = divmod(i, 4)
+                button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(x * 50, y * 50, 50, 50),
+                                                      text=build,
+                                                      manager=self.manager,
+                                                      container=container,
+                                                      parent_element=container,
+                                                      object_id=ObjectID(object_id=f'#{build.replace(" ", "_")}', class_id='@Place_buttons'))
+                                                      
         # Интерфейс паузы
         panel_rect = pygame.Rect(0, 0, 160, 160)
         panel_rect.center = (self.width // 2, self.height // 2)
@@ -49,29 +98,31 @@ class IngameUI:
                                                        visible=False)
         pause_kwargs = {'manager': self.manager, 'container': self.pause_panel,
                         'visible': False, 'parent_element': self.pause_panel}
-        self.pause_label = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(0, 0, 160, 40),
+        self.pause_label = pygame_gui.elements.UILabel(pygame.Rect(0, 0, 160, 40),
                                                        text='Paused',
                                                        **pause_kwargs)
-        self.unpause_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(-4, 40, 161, 40),
+        self.unpause_button = pygame_gui.elements.UIButton(pygame.Rect(-4, 40, 161, 40),
                                                            text='Continue',
                                                            **pause_kwargs)
-        self.return_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(-4, 80, 161, 40),
+        self.return_button = pygame_gui.elements.UIButton(pygame.Rect(-4, 80, 161, 40),
                                                           text='Save and return',
                                                           **pause_kwargs)
-        self.quit_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(-4, 120, 161, 40),
+        self.quit_button = pygame_gui.elements.UIButton(pygame.Rect(-4, 120, 161, 40),
                                                         text='Save and quit',
                                                         **pause_kwargs)
 
-    def set_pausemenu_visible(self, state):
-        self.pause_panel.visible = state
-        self.pause_label.visible = state
-        self.unpause_button.visible = state
-        self.return_button.visible = state
-        self.quit_button.visible = state
+    def show_build_container(self, name):
+        self.turret_container.hide()
+        self.harvester_container.hide()
+        self.wall_container.hide()
+        self.energy_container.hide()
+        self.conveyor_container.hide()
+        self.factory_container.hide()
+        getattr(self, name).show()
 
     def pause_game(self):
         temp_clock = pygame.time.Clock()
-        self.set_pausemenu_visible(True)
+        self.pause_panel.show()
 
         self.screen = pygame.display.get_surface()
         while True:
@@ -81,10 +132,10 @@ class IngameUI:
                     sys.exit(0)
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        return self.set_pausemenu_visible(False)
+                        return self.pause_panel.hide()
                 elif event.type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == self.unpause_button:
-                        return self.set_pausemenu_visible(False)
+                        return self.pause_panel.hide()
                     elif event.ui_element == self.quit_button:
                         pygame.quit()
                         sys.exit(0)
