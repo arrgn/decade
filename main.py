@@ -1,22 +1,32 @@
 import logging.config
 import sys
 import traceback
-from PyQt5 import Qt
+import pygame_gui
 
-from button import Button, ButtonGroup, ButtonImage
-from config import user, release
-from assets.scripts.path_module import path_to_file, create_dir, copy_file, path_to_userdata
+from assets.scripts.path_module import create_dir, copy_file, path_to_userdata, path_to_asset, path_to_file
+
+if __name__ == "__main__":
+    """
+        Прикол в том, что при создании юзера мы копируем дефолтные файлы из папки userdata/default.
+        Если разместить этот код после импорта юзера/окна авторизации - вылезет ошибка, так как юзер не сможет
+        копировать файлы либо окно авторизации не сможет открыть  файл.
+        В этом месте лучше копировать все необходимые файлы по умолчанию для юзера.
+    """
+    create_dir("userdata", "default")
+    copy_file(path_to_asset("images", "default.png"), "default")
+
+from PyQt5 import Qt
+from button import ButtonImage
+from config import user, release, music_player
 from assets.scripts.loggers import logger
 from assets.scripts.auth_window import AuthWindow
 from assets.scripts.profile_window import ProfileWindow
-import pygame_gui
-
-from assets.scripts.path_module import path_to_file
 from assets.sprites.sprite import *
 from building import init as BuilderInit
 from button import Button, ButtonGroup
 from level import LevelLoader
 from ui import IngameUI
+from assets.scripts.music_player import MusicPlayer
 
 
 class CameraGroup(pygame.sprite.Group):
@@ -63,7 +73,6 @@ class Game:
     def __init__(self, width, height) -> None:
         pygame.init()
         pygame.font.init()
-        pygame.mixer.init()
         pygame.display.set_caption('Untitled')
         self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
@@ -85,13 +94,13 @@ class Game:
 
     def show_menu(self):
         # Масштабируем задний фон под размеры окна
-        unscaled_bg = pygame.image.load(path_to_file('assets', 'images', 'MainMenuBg.jpg')).convert()
+        unscaled_bg = pygame.image.load(path_to_asset('images', 'MainMenuBg.jpg')).convert()
         bg = pygame.transform.scale(unscaled_bg, pygame.display.get_window_size())
 
         # Отрисовываем тексты
-        small_font = pygame.font.Font(path_to_file('assets', 'fonts', 'CinnamonCoffeCake.ttf'), 20)
-        font = pygame.font.Font(path_to_file('assets', 'fonts', 'CinnamonCoffeCake.ttf'), 35)
-        big_font = pygame.font.Font(path_to_file('assets', 'fonts', 'CinnamonCoffeCake.ttf'), 100)
+        small_font = pygame.font.Font(path_to_asset('fonts', 'CinnamonCoffeCake.ttf'), 20)
+        font = pygame.font.Font(path_to_asset('fonts', 'CinnamonCoffeCake.ttf'), 35)
+        big_font = pygame.font.Font(path_to_asset('fonts', 'CinnamonCoffeCake.ttf'), 100)
         game_title = big_font.render('Untitled game', True, '#E1FAF9')
         version_title = small_font.render('Version Prealpha 0.1', True, '#E1FAF9')
 
@@ -110,9 +119,7 @@ class Game:
                                    sign_up_button, logout_button)
 
         # Запускаем музочку.
-        pygame.mixer.music.load(path_to_file('assets', 'music', 'Waterfall.mp3'))
-        pygame.mixer.music.play(3)
-        pygame.mixer.music.set_volume(0.1)
+        music_player.play_bg_music('Waterfall.mp3', 3, 0.1)
 
         # Main loop
         while True:
@@ -233,7 +240,8 @@ class Game:
                             # Если не пересекается с другими зданиями
                             if camera_group.projection.rect.collidelist(BUILDER.taken_territory) == -1:
                                 # Если находится на земле
-                                if not pygame.sprite.collide_mask(LevelLoader.ordered_level_sprites[2], camera_group.projection):
+                                if not pygame.sprite.collide_mask(LevelLoader.ordered_level_sprites[2],
+                                                                  camera_group.projection):
                                     # Если не за картой
                                     if pygame.Rect(0, 0, 3040, 3040).contains(camera_group.projection.rect):
                                         BUILDER.place(camera_group.projection)
@@ -254,7 +262,8 @@ class Game:
 
             # Двигаем все выпущенные пули и проверяем коллизию
             bullet_group.update(dt / 1000)
-            pygame.sprite.spritecollide(LevelLoader.ordered_level_sprites[2], bullet_group, True, pygame.sprite.collide_mask)
+            pygame.sprite.spritecollide(LevelLoader.ordered_level_sprites[2], bullet_group, True,
+                                        pygame.sprite.collide_mask)
 
             # Отрисовка
             camera_group.custom_draw(centerfrom=player)
@@ -273,8 +282,6 @@ def log_handler(exctype, value, tb):
 if __name__ == "__main__":
     # Create folder for log and load log configuration
     create_dir("logs")
-    create_dir("userdata", "default")
-    copy_file(path_to_file("assets", "images", "default.png"), "default")
 
     logging.config.fileConfig(fname=path_to_file("logging.conf"), disable_existing_loggers=False)
     if release:
