@@ -44,9 +44,9 @@ def create_user_dir(username):
         print(e)
 
 
-def create_dir(dirname):
+def create_dir(*dirname):
     try:
-        if not isdir(path_to_file(dirname)):
-            makedirs(path_to_file(dirname))
+        if not isdir(path_to_file(*dirname)):
+            makedirs(path_to_file(*dirname))
     except FileExistsError as e:
         print(e)
