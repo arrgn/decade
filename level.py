@@ -24,6 +24,14 @@ class LevelLoader:
 
         tiles = dict()
         border_tiles = list()
+        ore_dict = {
+            'Titan': list(),
+            'Copper': list(),
+            'Hematite': list(),
+            'Coal': list(),
+            'Emerald': list()
+        }
+
         for layerIndex, layer in enumerate(tmx_data.visible_layers):
             tiles[layerIndex] = list()
             if hasattr(layer, 'data'):  # Слой с плитками
@@ -31,6 +39,11 @@ class LevelLoader:
                     tile = Tile(layerIndex, (x * cls.TILE_WIDTH, y * cls.TILE_HEIGHT), surf)
                     if layer.name == 'Стены' and tmx_data.get_tile_properties(x, y, 2).get('class', None) == 'Препятствие':
                         border_tiles.append(tile.rect)
+                    elif layer.name == 'Руда':
+                        ore_class = tmx_data.get_tile_properties(x, y, 1).get('class', None)
+                        if ore_class and ore_class in ore_dict:
+                            ore_dict[ore_class].append(pygame.Rect(x * cls.TILE_WIDTH, y * cls.TILE_HEIGHT, 32, 32))
+
                     tiles[layerIndex].append(tile)
             else:  # Слой с объектами
                 pass # NotImplemented, игнорированы
@@ -69,5 +82,6 @@ class LevelLoader:
         cls.ordered_level_sprites = all_map_sprites
         cls.collision_rects = border_tiles
         cls.whole_map = whole_sprite
+        cls.ore_dict = ore_dict
 
     

@@ -137,7 +137,7 @@ class Game:
         # Сбрасываем экран, загружаем карту и создаём персонажа
         self.screen.fill(0)
         LevelLoader.load(1)
-        BUILDER = BuilderInit((3040, 3040))
+        BUILDER = BuilderInit((3040, 3040), LevelLoader.ore_dict)
         Bullet.init()
         UI = IngameUI(self.screen.get_size())
         UI.initUI()
@@ -158,8 +158,25 @@ class Game:
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        UI.pause_game()
-                        self.clock.tick(999)  # Иначе следующий dt будет равен времени паузы.
+                        if camera_group.projection:
+                            # Отмена проекции здания
+                            camera_group.remove(camera_group.projection)
+                            camera_group.projection = None
+                        else:
+                            # Пауза игры
+                            UI.pause_game()
+                            self.clock.tick(999)  # Иначе следующий dt будет равен времени паузы.
+                    elif event.key == pygame.K_b or event.key == pygame.K_TAB:
+                        # Открытие/Закрытие UI стройки
+                        # UI.building_panel.visible = not UI.building_panel.visible
+                        # UI.viewport_panel.visible = not UI.viewport_panel.visible
+                        if UI.building_panel.visible:
+                            UI.building_panel.hide()
+                            UI.viewport_panel.hide()
+                        else:
+                            UI.building_panel.show()
+                            UI.viewport_panel.show()
+                            UI.show_build_container('turret_container')
                 elif event.type == pygame_gui.UI_BUTTON_PRESSED:
                     obj_id = event.ui_object_id
                     hash_index = obj_id.rfind('#')
@@ -187,30 +204,23 @@ class Game:
                                         camera_group.remove(camera_group.projection)
                                         camera_group.projection = None
                         elif not pygame.Rect(980, 0, 300, 720).contains(*event.pos, 1, 1):
+                            # Стрельба если лкм не обработан.
                             bullet = player.shoot()
                             bullet_group.add(bullet)
                             camera_group.add(bullet)
-                        # Стрельба в противном случае
-
-                        
-                        
-                # elif event.type == pygame.MOUSEBUTTONDOWN:
-                #     if event.button == pygame.BUTTON_RIGHT:
-                #         test_building = BUILDER.get_by_name('Copper drill')
-                #         camera_group.project_building(test_building)
-                #     elif event.button == pygame.BUTTON_LEFT:
-                #         building = camera_group.projection
-                #         if building:
-                #             BUILDER.place(building)
-                #             camera_group.projection = None
 
                 UI.manager.process_events(event)
 
-            # Обновляем местоположение игрока и отрисовываем камеру в зависимости от него.
+            # Обновляем местоположение игрока и его тень
             dt = self.clock.tick(self.FPS) 
             player.update(dt)
             player_shadow.update()
+
+            # Двигаем все выпущенные пули и проверяем коллизию
             bullet_group.update(dt / 1000)
+            pygame.sprite.spritecollide(LevelLoader.ordered_level_sprites[2], bullet_group, True, pygame.sprite.collide_mask)
+
+            # Отрисовка
             camera_group.custom_draw(centerfrom=player)
             UI.update_UI(dt)
             pygame.display.update()

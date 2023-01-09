@@ -161,8 +161,8 @@
         {
             "normal_image":
             {
-                "package": "assets.sprites",
-                "resource": "BuildingIcons.png",
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
                 "sub_surface_rect": "192,0,64,64"
             }
         }
@@ -174,9 +174,35 @@
         {
             "normal_image":
             {
-                "package": "assets.sprites",
-                "resource": "BuildingIcons.png",
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
                 "sub_surface_rect": "256,0,64,64"
+            }
+        }
+    },
+
+    "#Hematite_wall":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
+                "sub_surface_rect": "320,0,64,64"
+            }
+        }
+    },
+
+    "#Emerald_wall":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
+                "sub_surface_rect": "384,0,64,64"
             }
         }
     },
@@ -187,8 +213,8 @@
         {
             "normal_image":
             {
-                "package": "assets.sprites",
-                "resource": "BuildingIcons.png",
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
                 "sub_surface_rect": "0,0,64,64"
             }
         }
@@ -200,8 +226,8 @@
         {
             "normal_image":
             {
-                "package": "assets.sprites",
-                "resource": "BuildingIcons.png",
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
                 "sub_surface_rect": "64,0,64,64"
             }
         }
@@ -213,8 +239,8 @@
         {
             "normal_image":
             {
-                "package": "assets.sprites",
-                "resource": "BuildingIcons.png",
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
                 "sub_surface_rect": "128,0,64,64"
             }
         }

@@ -25,7 +25,7 @@ class IngameUI:
         self.height = size[1]
 
     def initUI(self):
-        # Главный интерфейс
+        # ШКАЛА СВЕРХУ
         panel_rect = pygame.Rect(0, 0, 300, 100)
         panel_rect.midtop = (self.width // 2, 0)
         self.panel = pygame_gui.elements.UIPanel(
@@ -41,6 +41,7 @@ class IngameUI:
                                                          container=self.panel,
                                                          object_id=ObjectID('toplabel', 'label'))
 
+        # МЕНЮ СТРОЙКИ
         self.building_panel = pygame_gui.elements.UIPanel(pygame.Rect(-300, 0, 300, self.height // 2),
                                                           manager=self.manager,
                                                           anchors={'right':'right', 'top': 'top'})
@@ -58,7 +59,7 @@ class IngameUI:
         # Индексация
         Placeables = {
             'Harvester': ['Copper drill', 'Hematite drill', 'Titan drill'],
-            'Wall': ['Copper wall', 'Titan wall']
+            'Wall': ['Copper wall', 'Titan wall', 'Hematite wall', 'Emerald wall']
         }
 
         # Создаём кнопки категорий и контейнеры для них
@@ -90,7 +91,7 @@ class IngameUI:
                                                       parent_element=container,
                                                       object_id=ObjectID(object_id=f'#{build.replace(" ", "_")}', class_id='@Place_buttons'))
                                                       
-        # Интерфейс паузы
+        # ИНТЕРФЕЙС ПАУЗЫ
         panel_rect = pygame.Rect(0, 0, 160, 160)
         panel_rect.center = (self.width // 2, self.height // 2)
         self.pause_panel = pygame_gui.elements.UIPanel(panel_rect,
@@ -110,6 +111,17 @@ class IngameUI:
         self.quit_button = pygame_gui.elements.UIButton(pygame.Rect(-4, 120, 161, 40),
                                                         text='Save and quit',
                                                         **pause_kwargs)
+
+        # НАДПИСИ НА ЭКРАНЕ. ПОДСКАЗКИ
+        self.hint1 = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(0, -20, 228, 20),
+                                                 text='B/TAB - open building menu',
+                                                 manager=self.manager,
+                                                 anchors={'centerx': 'centerx', 'bottom': 'bottom'})
+
+        self.hint2 = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(0, -41, 228, 20),
+                                                 text='Esc - pause menu',
+                                                 manager=self.manager,
+                                                 anchors={'centerx': 'centerx', 'bottom': 'bottom'})
 
     def show_build_container(self, name):
         self.turret_container.hide()

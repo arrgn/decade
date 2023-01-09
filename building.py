@@ -5,7 +5,7 @@ import os.path
 TILE_WIDTH = TILE_HEIGHT = 64
 
 
-def init(level_size):
+def init(level_size, ore_dict):
     # Загружаем spritesheet с 1x1 зданиями
     pass
 
@@ -18,6 +18,8 @@ def init(level_size):
     spriteSheetData[0][2] = ('Titan drill', 'Drill')
     spriteSheetData[0][3] = ('Copper wall', 'Wall')
     spriteSheetData[0][4] = ('Titan wall', 'Wall')
+    spriteSheetData[0][5] = ('Hematite wall', 'Wall')
+    spriteSheetData[0][6] = ('Emerald wall', 'Wall')
 
     # Загружаем spritesheet с 3x3 зданиями
     pass
@@ -66,6 +68,11 @@ def init(level_size):
             # Здесь нужно будет создать и объединить с тенью
             #
 
+            if building.type == 'Drill':
+                for key, rects in ore_dict.items():
+                    r: pygame.Rect = building.rect
+                    print(f'{key}: {r.collidelistall(rects)}')
+                    
             cls.building_sprite.image = cls.buildings_surface
             cls.built_buildings.append(building)
             cls.taken_territory.append(building.rect)

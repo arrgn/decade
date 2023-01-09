@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.9" tiledversion="1.9.2" name="Tileset3" tilewidth="32" tileheight="32" tilecount="200" columns="20">
  <image source="Tileset.png" width="640" height="320"/>
- <tile id="0" class="Руда"/>
- <tile id="1" class="Руда"/>
- <tile id="2" class="Руда"/>
- <tile id="3" class="Руда"/>
- <tile id="4" class="Руда"/>
+ <tile id="0" class="Titan"/>
+ <tile id="1" class="Copper"/>
+ <tile id="2" class="Hematite"/>
+ <tile id="3" class="Coal"/>
+ <tile id="4" class="Emerald"/>
  <tile id="5" class="Поверхность"/>
  <tile id="6" class="Поверхность"/>
  <tile id="7" class="Поверхность"/>
@@ -21,11 +21,11 @@
  <tile id="17" class="Поверхность"/>
  <tile id="18" class="Поверхность"/>
  <tile id="19" class="Поверхность"/>
- <tile id="20" class="Руда"/>
- <tile id="21" class="Руда"/>
- <tile id="22" class="Руда"/>
- <tile id="23" class="Руда"/>
- <tile id="24" class="Руда"/>
+ <tile id="20" class="Titan"/>
+ <tile id="21" class="Copper"/>
+ <tile id="22" class="Hematite"/>
+ <tile id="23" class="Coal"/>
+ <tile id="24" class="Emerald"/>
  <tile id="25" class="Поверхность"/>
  <tile id="26" class="Поверхность"/>
  <tile id="27" class="Поверхность"/>
@@ -41,11 +41,11 @@
  <tile id="37" class="Поверхность"/>
  <tile id="38" class="Поверхность"/>
  <tile id="39" class="Поверхность"/>
- <tile id="40" class="Руда"/>
- <tile id="41" class="Руда"/>
- <tile id="42" class="Руда"/>
- <tile id="43" class="Руда"/>
- <tile id="44" class="Руда"/>
+ <tile id="40" class="Titan"/>
+ <tile id="41" class="Copper"/>
+ <tile id="42" class="Hematite"/>
+ <tile id="43" class="Coal"/>
+ <tile id="44" class="Emerald"/>
  <tile id="45" class="Поверхность"/>
  <tile id="46" class="Поверхность"/>
  <tile id="47" class="Поверхность"/>
@@ -61,11 +61,11 @@
  <tile id="57" class="Поверхность"/>
  <tile id="58" class="Поверхность"/>
  <tile id="59" class="Поверхность"/>
- <tile id="60" class="Руда"/>
- <tile id="61" class="Руда"/>
- <tile id="62" class="Руда"/>
- <tile id="63" class="Руда"/>
- <tile id="64" class="Руда"/>
+ <tile id="60" class="Titan"/>
+ <tile id="61" class="Copper"/>
+ <tile id="62" class="Hematite"/>
+ <tile id="63" class="Coal"/>
+ <tile id="64" class="Emerald"/>
  <tile id="65" class="Вода"/>
  <tile id="66" class="Поверхность"/>
  <tile id="67" class="Поверхность"/>
