@@ -12,6 +12,14 @@ def path_to_file(*elements) -> str:
     return path.join(*elements)
 
 
+def path_to_asset(*elements) -> str:
+    """
+    :param elements: parts of local path to file (or directory)
+    :return: string - full path to file (or directory)
+    """
+    return path.join("assets", *elements)
+
+
 def path_to_userdata(filename: str, user_id: str) -> str:
     """
     :return: path to file from user's folder
