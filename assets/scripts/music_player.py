@@ -1,52 +1,137 @@
+import typing
 import pygame as pg
 
 from assets.scripts.path_module import path_to_asset
+from typing import Union
+
+# Инициализация миксера
+pg.mixer.init()
 
 
 class MusicPlayer:
-    def __init__(self, default: str = None, repeat: int = -1, volume: float = 1, sounds: dict[str: str] = None) -> None:
+    """
+        Класс для управления музыкой и звуками
+    """
+
+    class Sound:
         """
-            Класс для управления музыкой и звуками
+            Класс для легкого управления звуками
+        """
+
+        def __init__(self, file: str, loops: int = 0, max_time: int = 0, fade_ms: int = 0, volume: int = 1) -> None:
+            """
+                @param file название файла
+                @param loops количество циклов проигрывания (по умолчанию 1 раз, отсчет с 0)
+                @param max_time максимальное время проигрывания в мс
+                @param fade_ms время, за которое музыка будет наращивать громкость с 0 до 1 с начала проигрывания
+                @param volume громкость (0 - 1)
+            """
+            self.sound = pg.mixer.Sound(path_to_asset("music", file))
+            self.loops = loops
+            self.max_time = max_time
+            self.fade_ms = fade_ms
+            self.volume = volume
+
+            self.sound.set_volume(self.volume)
+
+        def __call__(self) -> None:
+            """
+                Проигрывает звук
+            """
+            self.sound.play(self.loops, self.max_time, self.fade_ms)
+
+        def change_config(self, loops: int = None, max_time: int = None, fade_ms: int = None,
+                          volume: float = None) -> None:
+            """
+                Изменяет текущие настройки звука
+                @param loops количество циклов проигрывания (по умолчанию 1 раз, отсчет с 0)
+                @param max_time максимальное время проигрывания в мс
+                @param fade_ms время, за которое музыка будет наращивать громкость с 0 до 1 с начала проигрывания
+                @param volume громкость (0 - 1)
+            """
+            if loops:
+                self.loops = loops
+            if max_time:
+                self.max_time = max_time
+            if fade_ms:
+                self.fade_ms = fade_ms
+            if volume:
+                self.volume = volume
+                self.sound.set_volume(self.volume)
+
+        def change_sound(self, file: str) -> None:
+            """
+                Изменяет звук (громкость остается прежней)
+                @param file название файла
+            """
+            self.sound = pg.mixer.Sound(path_to_asset("music", file))
+            self.sound.set_volume(self.volume)
+
+    def __init__(self, default: str = None, repeat: int = -1, volume: float = 1,
+                 sounds: typing.Dict[str, Union[typing.Dict[str, str], Sound]] = None) -> None:
+        """
             @param default фоновая музыка по умолчанию
             @param repeat количество раз проигрывания фоновой музыки (по умолчанию - зацикливание)
             @param volume громкость (0 - 1)
             @param sounds звуки для проигрывания во время игры
         """
-        pg.mixer.init()
-        self.sounds = {}
+        self.sounds: typing.Dict[str, MusicPlayer.Sound] = {}
         if default:
             pg.mixer.music.load(path_to_asset("music", default))
             pg.mixer.music.set_volume(volume)
             pg.mixer.music.play(repeat)
         if sounds:
             for k, v in sounds.items():
-                self.sounds[k] = pg.mixer.Sound(path_to_asset("music", v))
+                self[k] = v
 
-    def add_sound(self, name: str, file: str) -> None:
+    def change_sound_config(self, name: str, loops: int = None, max_time: int = None, fade_ms: int = None,
+                            volume: float = None) -> None:
         """
-            Добавляет звук в коллекцию
+            Изменяет настройки звука
             @param name имя звука
-            @param file имя файла
-        """
-        self.sounds[name] = pg.mixer.Sound(path_to_asset("music", file))
-
-    def play_sound(self, name: str, loops: int = 0, max_time: int = 0, fade_ms: int = 0) -> None:
-        """
-            Проигрывает звук из коллекции
-            @param name название файла
             @param loops количество циклов проигрывания (по умолчанию 1 раз, отсчет с 0)
             @param max_time максимальное время проигрывания в мс
             @param fade_ms время, за которое музыка будет наращивать громкость с 0 до 1 с начала проигрывания
-        """
-        self.sounds[name].play(loops=loops, maxtime=max_time, fade_ms=fade_ms)
-
-    def set_volume(self, name: str, volume: float):
-        """
-            Устанавливает громкость для звука
-            @param name имя звука
             @param volume громкость (0 - 1)
         """
-        self.sounds[name].set_volume(volume)
+        if name in self.sounds:
+            self.sounds[name].change_config(loops, max_time, fade_ms, volume)
+
+    def __setitem__(self, key: str, value: Union[typing.Dict[str, str], Sound]) -> None:
+        """
+            Добавляет звук в коллекцию
+            @param key имя звука
+            @param value объект класса MusicPlayer.Sound или словарь (ключи - аргументы MusicPlayer.Sound)
+        """
+        if type(value) == MusicPlayer.Sound:
+            self.sounds[key] = value
+            return
+        self.sounds[key] = MusicPlayer.Sound(**value)
+
+    def __getitem__(self, item: str) -> Union[None, Sound]:
+        """
+            Возвращает звук из коллекции
+            @param item имя звука
+        """
+        if item in self.sounds:
+            return self.sounds[item]
+        return None
+
+    def __delitem__(self, key: str) -> None:
+        """
+            Удаляет звук из коллекции
+            @param key имя звука
+        """
+        if key in self.sounds:
+            del self.sounds[key]
+
+    def __call__(self, name: str) -> None:
+        """
+            Проигрывает звук из коллекции
+            @param name название файла
+        """
+        if name in self.sounds:
+            self.sounds[name]()
 
     @staticmethod
     def add_bg_music(background: str) -> None:
