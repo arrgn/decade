@@ -3,7 +3,7 @@ import sys
 import traceback
 import pygame_gui
 
-from assets.scripts.path_module import create_dir, copy_file, path_to_userdata, path_to_asset, path_to_file
+from assets.scripts.path_module import create_dir, copy_file, path_to_asset, path_to_file
 
 if __name__ == "__main__":
     """
@@ -16,17 +16,16 @@ if __name__ == "__main__":
     copy_file(path_to_asset("images", "default.png"), "default")
 
 from PyQt5 import Qt
-from button import ButtonImage
-from config import user, release, music_player
+from config import release, music_player
 from assets.scripts.loggers import logger
-from assets.scripts.auth_window import AuthWindow
-from assets.scripts.profile_window import ProfileWindow
 from assets.sprites.sprite import *
 from building import init as BuilderInit
 from button import Button, ButtonGroup
 from level import LevelLoader
 from ui import IngameUI
-from assets.scripts.music_player import MusicPlayer
+from assets.scripts.profile_group import ProfileGroup
+from assets.scripts.fonts import *
+from assets.scripts.scroll_area import ScrollArea
 
 
 class CameraGroup(pygame.sprite.Group):
@@ -72,11 +71,14 @@ class Game:
 
     def __init__(self, width, height) -> None:
         pygame.init()
-        pygame.font.init()
         pygame.display.set_caption('Untitled')
         self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
+        self.profile_group = ProfileGroup()
         pygame.display.update()
+
+        # Запускаем музочку.
+        music_player.play_bg_music('Waterfall.mp3', 3, 0.1)
 
     def run(self) -> None:
         while True:
@@ -98,28 +100,14 @@ class Game:
         bg = pygame.transform.scale(unscaled_bg, pygame.display.get_window_size())
 
         # Отрисовываем тексты
-        small_font = pygame.font.Font(path_to_asset('fonts', 'CinnamonCoffeCake.ttf'), 20)
-        font = pygame.font.Font(path_to_asset('fonts', 'CinnamonCoffeCake.ttf'), 35)
-        big_font = pygame.font.Font(path_to_asset('fonts', 'CinnamonCoffeCake.ttf'), 100)
         game_title = big_font.render('Untitled game', True, '#E1FAF9')
         version_title = small_font.render('Version Prealpha 0.1', True, '#E1FAF9')
 
-        # Создаём спрайты
-        profile_sprite = pygame.image.load(path_to_userdata(user.get_avatar(), str(user.get_user_id()))).convert_alpha()
-
         # Создаём кнопки и добавляем их в группу
-        profile_button = ButtonImage((1210, 10, 60, 60), profile_sprite)
         play_button = Button((50, 200, 200, 50), 'Play', font, 'White', '#0496FF', '#006BA6')
         options_button = Button((50, 275, 200, 50), 'Options', font, 'White', '#0496FF', '#006BA6')
         exit_button = Button((50, 350, 200, 50), 'Exit', font, 'White', '#0496FF', '#006BA6')
-        sign_in_button = Button((1210, 80, 60, 35), 'Sign In', small_font, 'White', '#0496FF', '#006BA6')
-        sign_up_button = Button((1210, 125, 60, 35), 'Sign Un', small_font, 'White', '#0496FF', '#006BA6')
-        logout_button = Button((1210, 170, 60, 35), 'Logout', small_font, 'White', '#0496FF', '#006BA6')
-        menu_buttons = ButtonGroup(play_button, profile_button, options_button, exit_button, sign_in_button,
-                                   sign_up_button, logout_button)
-
-        # Запускаем музочку.
-        music_player.play_bg_music('Waterfall.mp3', 3, 0.1)
+        menu_buttons = ButtonGroup(play_button, options_button, exit_button)
 
         # Main loop
         while True:
@@ -130,39 +118,20 @@ class Game:
 
                 elif event.type == pygame.MOUSEMOTION:
                     menu_buttons.check_hover(event.pos)
+                    self.profile_group.check_hover(event.pos)
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     # Проверяем, нажата ли левая кнопка мыши, и находится ли курсор над кнопкой.
                     if event.button == pygame.BUTTON_LEFT:
                         clicked_button = menu_buttons.check_click(event.pos)
-                        if clicked_button is None: continue
+                        if clicked_button is None:
+                            self.profile_group.check_click(event.pos)
 
                         if clicked_button is play_button:
                             print('Нажата кнопка ИГРАТЬ')
-                            self.play_screen()
+                            self.map_management()
                         elif clicked_button is options_button:
                             print('Нажата кнопка НАСТРОЙКИ')
-                        elif clicked_button is profile_button:
-                            print('Нажата кнопка ПРОФИЛЬ')
-                            ProfileWindow().exec()
-                            # Перезагружаем аватарку
-                            profile_sprite = pygame.image.load(
-                                path_to_userdata(user.get_avatar(), str(user.get_user_id()))).convert_alpha()
-                            profile_button.set_image(profile_sprite)
-                        elif clicked_button is sign_in_button or clicked_button is sign_up_button:
-                            print('Нажата кнопка SIGN ' + ('IN' if clicked_button is sign_in_button else 'UP'))
-                            AuthWindow(clicked_button is sign_in_button).exec()
-                            # Перезагружаем аватарку
-                            profile_sprite = pygame.image.load(
-                                path_to_userdata(user.get_avatar(), str(user.get_user_id()))).convert_alpha()
-                            profile_button.set_image(profile_sprite)
-                        elif clicked_button is logout_button:
-                            print('Нажата кнопка LOGOUT')
-                            user.log_out()
-                            # Перезагружаем аватарку
-                            profile_sprite = pygame.image.load(
-                                path_to_userdata(user.get_avatar(), str(user.get_user_id()))).convert_alpha()
-                            profile_button.set_image(profile_sprite)
                         elif clicked_button is exit_button:
                             print('Нажата кнопка ВЫХОД')
 
@@ -172,6 +141,57 @@ class Game:
             self.screen.blit(game_title, (50, 20))
             self.screen.blit(version_title, version_title.get_rect(bottomright=(pygame.display.get_window_size())))
             menu_buttons.update(self.screen)
+            self.profile_group.show(self.screen)
+
+            self.clock.tick(self.FPS)
+            pygame.display.update()
+
+    def map_management(self):
+        # Масштабируем задний фон под размеры окна
+        unscaled_bg = pygame.image.load(path_to_asset('images', 'MainMenuBg.jpg')).convert()
+        bg = pygame.transform.scale(unscaled_bg, pygame.display.get_window_size())
+
+        # Отрисовываем тексты
+        game_title = big_font.render('Untitled game', True, '#E1FAF9')
+        version_title = small_font.render('Version Prealpha 0.1', True, '#E1FAF9')
+
+        # Создаём кнопки и добавляем их в группу
+        back_button = Button((50, 650, 200, 50), "Back", font, 'White', '#0496FF', '#006BA6')
+        menu_buttons = ButtonGroup(back_button)
+
+        scroll = ScrollArea((50, 200, 675, 400), 100, 5, 128, (0, 0, 0))
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                elif event.type == pygame.MOUSEMOTION:
+                    menu_buttons.check_hover(event.pos)
+                    self.profile_group.check_hover(event.pos)
+
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    clicked_button = menu_buttons.check_click(event.pos)
+                    if clicked_button is None:
+                        self.profile_group.check_click(event.pos)
+
+                    if clicked_button is back_button:
+                        self.show_menu()
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_UP]:
+                scroll.scroll(-3)
+            elif keys[pygame.K_DOWN]:
+                scroll.scroll(3)
+
+            # Отрисовываем всё по порядку
+            self.screen.blit(bg, (0, 0))
+            pygame.draw.rect(self.screen, '#EE6C4D', game_title.get_rect(topleft=(50, 20)))
+            self.screen.blit(game_title, (50, 20))
+            self.screen.blit(version_title, version_title.get_rect(bottomright=(pygame.display.get_window_size())))
+            scroll.show(self.screen)
+            menu_buttons.update(self.screen)
+            self.profile_group.show(self.screen)
 
             self.clock.tick(self.FPS)
             pygame.display.update()

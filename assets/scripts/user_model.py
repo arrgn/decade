@@ -1,6 +1,7 @@
 from assets.scripts.db_module import DAO
 from assets.scripts.path_module import path_to_userdata, copy_file, create_user_dir
 from assets.scripts.loggers import logger
+from datetime import datetime
 
 
 class User:
@@ -64,7 +65,7 @@ class User:
 
     def change_username(self, new_name):
         try:
-            res = self.dao.change_username(self.name, new_name)
+            self.dao.change_username(self.name, new_name)
             self.name = new_name
             return True
         except DAO.UserDoesntExistError:
@@ -75,7 +76,7 @@ class User:
 
     def change_avatar(self, avatar="default.png"):
         try:
-            res = self.dao.change_avatar(self.name, avatar)
+            self.dao.change_avatar(self.name, avatar)
             return True
         except DAO.UserDoesntExistError:
             logger.exception("Tracked exception occurred!")
@@ -86,5 +87,37 @@ class User:
             res = self.dao.delete_user_by_name(self.name)
             return res
         except DAO.UserDoesntExistError:
+            logger.exception("Tracked exception occurred!")
+        return False
+
+    def add_map(self, title, description, file):
+        try:
+            self.dao.add_map(self.get_user(), title, description, datetime.now(), file)
+            return True
+        except DAO.UserDoesntExistError:
+            logger.exception("Tracked exception occurred!")
+        return False
+
+    def get_maps(self):
+        try:
+            res = self.dao.get_maps_by_user(self.get_user())
+            return res
+        except DAO.UserDoesntExistError:
+            logger.exception("Tracked exception occurred!")
+        return []
+
+    def get_map(self, name):
+        try:
+            res = self.dao.get_map(self.get_user(), name)
+            return res
+        except (DAO.UserDoesntExistError, DAO.MapNotFoundError):
+            logger.exception("Tracked exception occurred!")
+        return False
+
+    def access_map(self, user_to, map_name):
+        try:
+            self.dao.access_map(self.get_user(), user_to, map_name)
+            return True
+        except (DAO.UserDoesntExistError, DAO.MapNotFoundError):
             logger.exception("Tracked exception occurred!")
         return False
