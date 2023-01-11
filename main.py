@@ -136,8 +136,11 @@ class Game:
     def play_screen(self):
         # Сбрасываем экран, загружаем карту и создаём персонажа
         self.screen.fill(0)
-        LevelLoader.load(1)
-        BUILDER = BuilderInit((3040, 3040), LevelLoader.ore_dict)
+        base_pos = LevelLoader.load(1)
+        base = PlayerBase()
+        base.rect = base.image.get_rect(topleft=base_pos.topleft)
+
+        BUILDER = BuilderInit((3040, 3040), LevelLoader.ore_dict, base_pos)
         Bullet.init()
         UI = IngameUI(self.screen.get_size())
         UI.initUI()
@@ -147,7 +150,7 @@ class Game:
         player_shadow = EntityShadow(player)
 
         # Создаём группу спрайтов, которая будет служить камерой
-        camera_group = CameraGroup(LevelLoader.whole_map, player_shadow, player, BUILDER.building_sprite)
+        camera_group = CameraGroup(LevelLoader.whole_map, base, player_shadow, player, BUILDER.building_sprite)
         bullet_group = pygame.sprite.Group()
         mob_group = pygame.sprite.Group()
 
@@ -156,6 +159,11 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                elif event.type == pygame.MOUSEWHEEL:
+                    if camera_group.projection:
+                        angle = 90 if event.y > 0 else -90
+                        camera_group.projection.image = pygame.transform.rotate(camera_group.projection.image, angle)
+                        camera_group.projection.rotated_by = getattr(camera_group.projection, 'rotated_by', 0) + angle
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         if camera_group.projection:
@@ -189,7 +197,10 @@ class Game:
                         # Кнопки зданий внутри категорий
                         building_name = obj_id[hash_index + 1:].replace('_', ' ')
                         building = BUILDER.get_by_name(building_name)
-                        camera_group.project_building(building)
+                        if not building:
+                            print(f"NO INFORMATION ABOUT {building_name}")
+                        else:
+                            camera_group.project_building(building)
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == pygame.BUTTON_LEFT:
                         # Если здание выбрано к стройке и клик был не на UI
@@ -215,6 +226,8 @@ class Game:
             dt = self.clock.tick(self.FPS) 
             player.update(dt)
             player_shadow.update()
+
+            BUILDER.update(dt)
 
             # Двигаем все выпущенные пули и проверяем коллизию
             bullet_group.update(dt / 1000)

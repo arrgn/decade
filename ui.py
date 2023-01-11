@@ -59,7 +59,8 @@ class IngameUI:
         # Индексация
         Placeables = {
             'Harvester': ['Copper drill', 'Hematite drill', 'Titan drill'],
-            'Wall': ['Copper wall', 'Titan wall', 'Hematite wall', 'Emerald wall']
+            'Wall': ['Copper wall', 'Titan wall', 'Hematite wall', 'Emerald wall'],
+            'Conveyor': ['Conveyor']
         }
 
         # Создаём кнопки категорий и контейнеры для них
@@ -122,6 +123,35 @@ class IngameUI:
                                                  text='Esc - pause menu',
                                                  manager=self.manager,
                                                  anchors={'centerx': 'centerx', 'bottom': 'bottom'})
+
+        # ИНТЕРФЕЙС РЕСУРСОВ
+        spritesheet = pygame.image.load(os.path.join('assets', 'sprites', 'ResourceIcons.png')).convert_alpha()
+        icon_surfaces = list()
+        for x in range(5):
+            surf = pygame.Surface((50, 50)).convert_alpha()
+            surf.blit(spritesheet, (0, 0), (x * 50, 0, 50, 50))
+            icon_surfaces.append(surf)
+            
+
+        self.text1 = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(0, 0, 300, 50),
+                                                 text='Resources in base:',
+                                                 container=self.viewport_panel,
+                                                 parent_element=self.viewport_panel,
+                                                 manager=self.manager)
+        for i, name in enumerate(('Titan', 'Coal', 'Hematite', 'Emerald', 'Copper')):
+            icon = pygame_gui.elements.UIImage(relative_rect=pygame.Rect(0, 50 * i + 50, 50, 50),
+                                               image_surface=icon_surfaces[i],
+                                               manager=self.manager,
+                                               container=self.viewport_panel,
+                                               parent_element=self.viewport_panel)
+            text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(50, 50 * i + 50, 250, 50),
+                                               manager=self.manager,
+                                               container=self.viewport_panel,
+                                               parent_element=self.viewport_panel,
+                                               text=name)
+            
+            setattr(self, f'icon{i + 1}', icon)
+            setattr(self, f'{name}Text', text)
 
     def show_build_container(self, name):
         self.turret_container.hide()

@@ -3,10 +3,103 @@ import math
 import pygame
 import time
 from os.path import join
+from dataclasses import dataclass
 from pygame.sprite import Sprite, Group
 
 TILE_WIDTH = TILE_HEIGHT = 32
 LEVEL_WIDTH, LEVEL_HEIGHT = 95 * TILE_WIDTH, 95 * TILE_HEIGHT
+
+
+class Structure(Sprite):
+    def __init__(self, name, building_type, image, health, *groups) -> None:
+        super().__init__(*groups)
+        self.health = health
+        self.name = name
+        self.type = building_type
+        self.image = image
+        self.display_layer = 2
+
+    def take_damage(self, amount):
+        self.health -= amount
+        if self.health < 0:
+            self.kill()
+
+
+class Harvester(Structure):
+    def __init__(self, name, image, health, resource=None, power=4, *groups) -> None:
+        super().__init__(name, 'Harvester', image, health, *groups)
+        self.resource_timer = 0
+        self.harvest_rate = round(power / 2)
+        self.resource = resource
+        self.nearby_conveyors = None
+        self.holding = 0
+
+    def update_conveyor_info(self, conveyer_dict):
+        toprect = self.rect.copy().move(0, -64)
+        bottomrect = self.rect.copy().move(0, 64)
+        middleleftrect = self.rect.copy().move(-64, 0)
+        middlerightrect = self.rect.copy().move(64, 0)
+
+        available_convs = list()
+        for i in (toprect, bottomrect, middleleftrect, middlerightrect):
+            conv = conveyer_dict.get(tuple(i), None)
+            if conv:
+                available_convs.append(conv)
+
+        self.nearby_conveyors = available_convs
+
+    def update(self, dt) -> None:  # In secs
+        self.resource_timer += dt
+        if self.resource_timer > 2 and self.holding < 10:
+            self.resource_timer = 0
+            self.holding = min(10, self.holding + self.harvest_rate)
+            # print(self.resource, self.holding)
+        
+        if self.holding and self.nearby_conveyors:
+            for conv in self.nearby_conveyors:
+                if not conv.holding_item or conv.holding_item[0] == self.resource:
+                    conv.transfer_resource(self.resource, self.holding)
+                    self.holding = 0
+                    break
+
+
+class PlayerBase(Structure):
+    def __init__(self, *groups) -> None:
+        surf = pygame.Surface((64, 64)).convert()
+        surf.blit(pygame.image.load(join('assets', 'maps', '2x2Buildings.png')), (0, 0), (448, 0, 64, 64))
+        super().__init__("PlayerBase", 'Misc', surf, 2000)
+
+
+class Wall(Structure):
+    def __init__(self, name, image, health, *groups) -> None:
+        super().__init__(name, 'Wall', image, health, *groups)
+
+
+class Conveyor(Structure):
+    def __init__(self, name, image, health, *groups) -> None:
+        super().__init__(name, 'Conveyor', image, health, *groups)
+        self.holding_item = None
+        self.looking_at: pygame.Rect
+
+    def transfer_resource(self, resource, amount):
+        if not self.holding_item:
+            self.holding_item = (resource, amount)
+        else:
+            self.holding_item = self.holding_item[0], self.holding_item[1] + amount
+        print(f'Received: {resource=}, {self.holding_item[1]}')
+
+    def update(self, dt, conveyer_dict, base_pos) -> None:
+        if self.holding_item and self.looking_at:
+            coords = tuple(self.looking_at)
+            if coords in conveyer_dict:
+                conveyor = conveyer_dict[coords]
+                if not conveyor.holding_item or self.holding_item[0] == conveyor.holding_item[0]:
+                    conveyor.transfer_resource(*self.holding_item)
+                    self.holding_item = None
+            else:
+                print(coords, base_pos)
+
+
 
 
 class Bullet(Sprite):
@@ -16,9 +109,11 @@ class Bullet(Sprite):
 
     def __init__(self, pos, *groups) -> None:
         super().__init__(*groups)
-        self.direction = pygame.math.Vector2(pygame.mouse.get_pos()) - (self.half_w, self.half_h)
+        self.direction = pygame.math.Vector2(
+            pygame.mouse.get_pos()) - (self.half_w, self.half_h)
         self.direction.scale_to_length(1)
-        rotate_angle = math.degrees(math.atan2(self.direction.x, self.direction.y))
+        rotate_angle = math.degrees(math.atan2(
+            self.direction.x, self.direction.y))
 
         scaled_image = pygame.transform.scale(self.texture, (16, 32))
         self.image = pygame.transform.rotate(scaled_image, rotate_angle)
@@ -29,8 +124,10 @@ class Bullet(Sprite):
 
     @classmethod
     def init(cls):
-        cls.half_w, cls.half_h = map(lambda x: x // 2, pygame.display.get_surface().get_size())
-        cls.texture = pygame.image.load(join('assets', 'sprites', 'BulletSprite.png')).convert_alpha()
+        cls.half_w, cls.half_h = map(
+            lambda x: x // 2, pygame.display.get_surface().get_size())
+        cls.texture = pygame.image.load(
+            join('assets', 'sprites', 'BulletSprite.png')).convert_alpha()
 
 
 class Player(Sprite):
@@ -42,7 +139,8 @@ class Player(Sprite):
 
     def __init__(self, pos, collideables=None, *groups):
         super().__init__(*groups)
-        image = pygame.image.load(join('assets', 'sprites', 'Character.png')).convert_alpha()
+        image = pygame.image.load(
+            join('assets', 'sprites', 'Character.png')).convert_alpha()
         self.originalImage = pygame.transform.scale(image, (64, 64))
         self.image = self.originalImage.copy()
         self.rect = self.image.get_rect(topleft=pos)
@@ -96,7 +194,8 @@ class Player(Sprite):
 
     def tweenRotation(self, dt):
         """Что-то типо 'анимации' вектора наклона в сторону вектора движения"""
-        self.rotation = self.rotation.lerp(self.direction, min(self.turning_speed * dt / 1000, 1))
+        self.rotation = self.rotation.lerp(
+            self.direction, min(self.turning_speed * dt / 1000, 1))
 
     def update(self, dt) -> None:
         self.getInput()
@@ -111,7 +210,8 @@ class Player(Sprite):
             self.rect = self.image.get_rect(center=self.rect.center)
 
             self.direction.normalize_ip()
-            newPos = self.rect.center + (self.direction * self.speed * dt / 1000)
+            newPos = self.rect.center + \
+                (self.direction * self.speed * dt / 1000)
             if self.collideables:
                 for rect in self.collideables:
                     if rect.collidepoint(newPos):
@@ -156,7 +256,8 @@ class VectorShadow(Sprite):
 
     def __init__(self, map_sprite: Sprite, sun_vector: pygame.Vector2, height_multiplier: float, *groups) -> Sprite:
         super().__init__(*groups)
-        self.image, self.rect = self.calculateShadow(map_sprite, sun_vector, height_multiplier)
+        self.image, self.rect = self.calculateShadow(
+            map_sprite, sun_vector, height_multiplier)
 
     @classmethod
     def calculateShadow(cls, sprite, sun_vector, height_multiplier, precise=True, tile_size=None):
@@ -165,7 +266,8 @@ class VectorShadow(Sprite):
         map_outline = map_mask.outline()
         if not precise:
             assert tile_size
-            pass  # TODO В будущем для теней от построек. Будет НАМНОГО оптимизированней, но не таким точным.
+            # TODO В будущем для теней от построек. Будет НАМНОГО оптимизированней, но не таким точным.
+            pass
 
         shadow_outline = [0] * len(map_outline)
         for i, point in enumerate(map_outline):
@@ -176,7 +278,8 @@ class VectorShadow(Sprite):
 
         newSurface = pygame.Surface(map_mask.get_size(), pygame.SRCALPHA)
         for i in range(len(map_outline) - 1):
-            polygon = map_outline[i], map_outline[i + 1], shadow_outline[i + 1], shadow_outline[i]
+            polygon = map_outline[i], map_outline[i +
+                                                  1], shadow_outline[i + 1], shadow_outline[i]
             pygame.draw.polygon(newSurface, (0, 0, 0, 128), polygon)
 
         return newSurface, newSurface.get_rect()
@@ -195,4 +298,5 @@ class EntityShadow(StaticShadow):
         if self.sprite.is_moving:
             self.image, self.rect = self.get_shadow()
 
-del Sprite, Group
+
+del Sprite, Group, dataclass
