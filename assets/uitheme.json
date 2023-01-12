@@ -1,0 +1,248 @@
+{
+    "defaults":
+    {
+        "colours":
+        {
+            "normal_bg":"#45494e",
+            "hovered_bg":"#35393e",
+            "disabled_bg":"#25292e",
+            "selected_bg":"#193754",
+            "dark_bg":"#15191e",
+            "normal_text":"#c5cbd8",
+            "hovered_text":"#FFFFFF",
+            "selected_text":"#FFFFFF",
+            "disabled_text":"#6d736f",
+            "link_text": "#0000EE",
+            "link_hover": "#2020FF",
+            "link_selected": "#551A8B",
+            "text_shadow": "#777777",
+            "normal_border": "#DDDDDD",
+            "hovered_border": "#B0B0B0",
+            "disabled_border": "#808080",
+            "selected_border": "#8080B0",
+            "active_border": "#8080B0",
+            "filled_bar":"#f4251b",
+            "unfilled_bar":"#CCCCCC"
+        }
+    },
+    
+    "progress_bar":
+    {
+        "colours":
+        {
+            "normal_text": "#c5cbd8",
+            "text_shadow": "#777777",
+            "normal_border": "#DDDDDD",
+            "filled_bar": "#f4251b,#A4150b,180",
+            "unfilled_bar": "#CCCCCC"
+        },
+        "font":
+        {
+            "name": "montserrat",
+            "size": "12",
+            "bold": "0",
+            "italic": "1"
+        }
+    },
+    
+    "label":
+    {
+        "colours":
+        {
+            "dark_bg": "#25292e",
+            "normal_text": "#c5cbd8",
+            "text_shadow": "#505050"
+        },
+        "font":
+        {
+            "name": "montserrat",
+            "size": "10",
+            "bold": "0",
+            "italic": "0"
+        },
+        "misc":
+        {
+            "text_shadow": "1",
+            "text_shadow_size": "1",
+            "text_shadow_offset": "0,0"
+        }
+    },
+
+    "@build_categories":
+    {
+        "colours":
+        {
+            "normal_bg": "#5B6EE1",
+            "hovered_bg": "#669BFF"
+        }
+    },
+
+    "#Turret":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.sprites",
+                "resource": "Buttons.png",
+                "sub_surface_rect": "0,0,50,50"
+            }
+        }
+    },
+
+    "#Harvester":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.sprites",
+                "resource": "Buttons.png",
+                "sub_surface_rect": "50,0,50,50"
+            }
+        }
+    },
+
+    "#Energy":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.sprites",
+                "resource": "Buttons.png",
+                "sub_surface_rect": "100,0,50,50"
+            }
+        }
+    },
+
+    "#Wall":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.sprites",
+                "resource": "Buttons.png",
+                "sub_surface_rect": "150,0,50,50"
+            }
+        }
+    },
+
+    "#Conveyor":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.sprites",
+                "resource": "Buttons.png",
+                "sub_surface_rect": "200,0,50,50"
+            }
+        }
+    },
+
+    "#Factory":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.sprites",
+                "resource": "Buttons.png",
+                "sub_surface_rect": "250,0,50,50"
+            }
+        }
+    },
+
+    "#Copper_wall":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
+                "sub_surface_rect": "192,0,64,64"
+            }
+        }
+    },
+
+    "#Titan_wall":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
+                "sub_surface_rect": "256,0,64,64"
+            }
+        }
+    },
+
+    "#Hematite_wall":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
+                "sub_surface_rect": "320,0,64,64"
+            }
+        }
+    },
+
+    "#Emerald_wall":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
+                "sub_surface_rect": "384,0,64,64"
+            }
+        }
+    },
+
+    "#Copper_drill":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
+                "sub_surface_rect": "0,0,64,64"
+            }
+        }
+    },
+
+    "#Hematite_drill":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
+                "sub_surface_rect": "64,0,64,64"
+            }
+        }
+    },
+
+    "#Titan_drill":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
+                "sub_surface_rect": "128,0,64,64"
+            }
+        }
+    }
+}
