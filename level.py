@@ -6,7 +6,7 @@ from assets.sprites.sprite import Tile, VectorShadow
 
 class LevelLoader:
     level1 = os.path.join('assets', 'maps', 'Map.tmx')
-    level2 = os.path.join('assets', 'maps', 'NONE.tmx')
+    level2 = os.path.join('assets', 'maps', 'Map2.tmx')
     level3 = os.path.join('assets', 'maps', 'NONE.tmx')
 
     levels = {
@@ -18,14 +18,21 @@ class LevelLoader:
 
             'BASE_LOCATION': pygame.Rect(1312, 2560, 64, 64),
             'WAVES': {
-                
+                1: 5,
+                2: 10,
+                3: 13,
+                4: 15,
+                5: 18,
+                6: 20,
+                7: 21,
+                8: 40
             }
         },
 
         2: {
             'TILE_WIDTH': 32,
             'TILE_HEIGHT': 32,
-            'LEVEL_SIZE': (95 * 32, 95 * 32),
+            'LEVEL_SIZE': (50 * 32, 50 * 32),
             'SUN_POSITION': pygame.math.Vector2(-7000, -5000),
 
             'BASE_LOCATION': pygame.Rect(1312, 2560, 64, 64),

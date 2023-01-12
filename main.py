@@ -134,16 +134,18 @@ class Game:
             pygame.display.update()
 
     def play_screen(self):
+
+        level_number = 2
         # Сбрасываем экран, загружаем карту и создаём персонажа
         self.screen.fill(0)
 
-        base_pos = LevelLoader.load(1)
+        base_pos = LevelLoader.load(level_number)
         base = PlayerBase()
         base.rect = base.image.get_rect(topleft=base_pos.topleft)
 
         BUILDER = BuilderInit((3040, 3040), LevelLoader.ore_dict, base_pos)
         Bullet.init()
-        UI = IngameUI(self.screen.get_size())
+        UI = IngameUI(self.screen.get_size(), level_number)
         UI.initUI()
         UI.start_timer(90)
 
@@ -156,7 +158,6 @@ class Game:
         camera_group = CameraGroup(LevelLoader.whole_map, base, player_shadow, player, BUILDER.building_sprite)
         bullet_group = pygame.sprite.Group()
         mob_group = pygame.sprite.Group()
-        placement_angle = 0
 
         def place_building_if_can():
             # Если здание выбрано к стройке и клик был не на UI
@@ -167,8 +168,10 @@ class Game:
                     if not pygame.sprite.collide_mask(LevelLoader.ordered_level_sprites[2], camera_group.projection):
                         # Если не за картой
                         if pygame.Rect(0, 0, 3040, 3040).contains(camera_group.projection.rect):  # TODO, подогнать под размеры карты.
+
                             BUILDER.place(camera_group.projection)
                             camera_group.remove(camera_group.projection)
+
                             camera_group.projection = None
                             return True
         while True:
@@ -203,6 +206,8 @@ class Game:
                             UI.building_panel.show()
                             UI.viewport_panel.show()
                             UI.show_build_container('turret_container')
+                    elif event.key == pygame.K_r and camera_group.projection:
+                        camera_group.projection.rotate_right()
                 elif event.type == pygame_gui.UI_BUTTON_PRESSED:
                     obj_id = event.ui_object_id
                     hash_index = obj_id.rfind('#')
@@ -218,7 +223,7 @@ class Game:
                         if not building:
                             print(f"NO INFORMATION ABOUT {building_name}")
                         else:
-                            building.image = pygame.transform.rotate(building.image, placement_angle)
+                            # building.image = pygame.transform.rotate(building.image, placement_angle)
                             camera_group.project_building(building)
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == pygame.BUTTON_LEFT:
@@ -232,8 +237,12 @@ class Game:
                     elif event.button == pygame.BUTTON_RIGHT:
                         state = place_building_if_can()
                         if state:
+                            times = building.angle % 360
                             building = BUILDER.get_by_name(building.name)
-                            building.image = pygame.transform.rotate(building.image, placement_angle)
+
+                            for i in range(times // 90):
+                                building.rotate_left()
+
                             camera_group.project_building(building)
                         else:
                             BUILDER.delete_build_on_click(event.pos + camera_group.offset)

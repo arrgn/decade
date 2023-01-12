@@ -15,7 +15,7 @@ class ProgressBarWOText(pygame_gui.elements.UIProgressBar):
 
 
 class IngameUI:
-    def __init__(self, size):
+    def __init__(self, size, level_number):
         self.screen = pygame.display.get_surface()
         self.manager = pygame_gui.UIManager(
             size, path_to_file('assets', 'uitheme.json'))

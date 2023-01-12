@@ -11,8 +11,6 @@ LEVEL_WIDTH, LEVEL_HEIGHT = 95 * TILE_WIDTH, 95 * TILE_HEIGHT
 
 
 class Structure(Sprite):
-    angles = (0, 90, 180, 270)
-
     def __init__(self, name, building_type, image, health, *groups) -> None:
         super().__init__(*groups)
         self.health = health
@@ -20,24 +18,19 @@ class Structure(Sprite):
         self.type = building_type
         self.image = image
         self.display_layer = 2
-        self.__angle = 0
+        self.angle = 0
 
     @property
     def rotated_by(self):
-        return self.__angle % 360
-
-    def rotate_left(self):
-        self.__angle -= 90
-        self.image = pygame.transform.rotate(self.image, -90)
+        return self.angle % 360
 
     def rotate_right(self):
-        self.__angle += 90
-        self.image = pygame.transform.rotate(self.image, 90)
-        # 270 -> 180 -> (360+180) % 360 -> 180
-        # 180 -> 90 -> (360+90) % 360 -> 90
-        # 90 -> 0 -> 360 % 360 -> 0
-        # 0 -> -90 -> (360+(-90)) % 360 -> 270
+        self.angle -= 90
+        self.image = pygame.transform.rotate(self.image, -90)
 
+    def rotate_left(self):
+        self.angle += 90
+        self.image = pygame.transform.rotate(self.image, 90)
 
     def take_damage(self, amount):
         self.health -= amount
@@ -96,6 +89,8 @@ class PlayerBase(Structure):
             self.resources = dict.fromkeys(('Coal', 'Copper', 'Hematite', 'Titan', 'Emerald'), 0)
             self.UI = None
             self.__class__.__instance = self
+        else:
+            return self.__class__.__instance
 
     def transfer_resource(self, resource, amount):
         self.resources[resource] += amount
@@ -116,7 +111,7 @@ class Wall(Structure):
 class Conveyor(Structure):
     def __init__(self, name, image, health, *groups) -> None:
         super().__init__(name, 'Conveyor', image, health, *groups)
-        self.holding_item = None
+        self.holding_item = None 
         self.looking_at: pygame.Rect
 
     def transfer_resource(self, resource, amount):
@@ -267,6 +262,11 @@ class Player(Sprite):
             self.rect.center = newPos
         else:
             self.is_moving = False
+
+
+class Enemy(Sprite):
+    def __init__(self, *groups) -> None:
+        super().__init__(*groups)
 
 
 class Tile(Sprite):
