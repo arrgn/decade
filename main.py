@@ -1,6 +1,8 @@
 import logging.config
 import sys
 import traceback
+
+import pygame.event
 import pygame_gui
 
 from assets.scripts.path_module import create_dir, copy_file, path_to_asset, path_to_file
@@ -17,6 +19,7 @@ if __name__ == "__main__":
     copy_file(path_to_asset("images", "default.png"), "default")
 
 from PyQt5 import Qt
+from pygame_textinput import TextInputVisualizer
 from config import release, music_player
 from assets.scripts.loggers import logger
 from assets.sprites.sprite import *
@@ -133,6 +136,7 @@ class Game:
                             self.map_management(lambda: LevelLoader.levels)
                         elif clicked_button is options_button:
                             print('Нажата кнопка НАСТРОЙКИ')
+                            self.settings_screen()
                         elif clicked_button is exit_button:
                             print('Нажата кнопка ВЫХОД')
                             pygame.quit()
@@ -157,6 +161,7 @@ class Game:
         # Отрисовываем тексты
         game_title = big_font.render('Untitled game', True, '#E1FAF9')
         version_title = small_font.render('Version Prealpha 0.1', True, '#E1FAF9')
+        hint = small_font.render("Use Key-Up/Key-Down to scroll", True, "#E1FAF9")
 
         # Создаём кнопки и добавляем их в группу
         back_button = Button((50, 650, 200, 50), "Back", font, 'White', '#0496FF', '#006BA6')
@@ -193,9 +198,77 @@ class Game:
             # Отрисовываем всё по порядку
             self.screen.blit(bg, (0, 0))
             pygame.draw.rect(self.screen, '#EE6C4D', game_title.get_rect(topleft=(50, 20)))
+            pygame.draw.rect(self.screen, '#EE6C4D', hint.get_rect(topleft=(60 + game_title.get_width(), 20)))
             self.screen.blit(game_title, (50, 20))
             self.screen.blit(version_title, version_title.get_rect(bottomright=(pygame.display.get_window_size())))
+            self.screen.blit(hint, (60 + game_title.get_width(), 20))
             scroll.show(self.screen)
+            menu_buttons.update(self.screen)
+            self.profile_group.show(self.screen)
+
+            self.clock.tick(self.FPS)
+            pygame.display.update()
+
+    def settings_screen(self):
+        self.screen.fill(0)
+
+        # Масштабируем задний фон под размеры окна
+        unscaled_bg = pygame.image.load(path_to_asset('images', 'MainMenuBg.jpg')).convert()
+        bg = pygame.transform.scale(unscaled_bg, pygame.display.get_window_size())
+
+        # Отрисовываем тексты
+        game_title = big_font.render('Untitled game', True, '#E1FAF9')
+        version_title = small_font.render('Version Prealpha 0.1', True, '#E1FAF9')
+        volume = font.render("Volume", True, "#E1FAF9")
+
+        # Создаём кнопки и добавляем их в группу
+        back_button = Button((50, 650, 200, 50), "Back", font, 'White', '#0496FF', '#006BA6')
+        accept_button = Button((300, 650, 200, 50), "Accept", font, "White", '#0496FF', '#006BA6')
+        menu_buttons = ButtonGroup(back_button, accept_button)
+
+        # Поля ввода
+        sound_volume = TextInputVisualizer(font_object=font, antialias=True)
+        sound_volume.value = "100"
+
+        run = True
+        while run:
+            events = pygame.event.get()
+
+            sound_volume.update(events)
+
+            for event in events:
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                elif event.type == pygame.MOUSEMOTION:
+                    menu_buttons.check_hover(event.pos)
+                    self.profile_group.check_hover(event.pos)
+
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    clicked_button = menu_buttons.check_click(event.pos)
+                    if clicked_button is None:
+                        self.profile_group.check_click(event.pos)
+
+                    if clicked_button is back_button:
+                        run = False
+                        break
+                    elif clicked_button is accept_button:
+                        value = sound_volume.value
+                        if value.isdigit():
+                            value = float(value) / 100
+                            music_player.set_global_volume(value)
+
+            # Отрисовываем всё по порядку
+            self.screen.blit(bg, (0, 0))
+            pygame.draw.rect(self.screen, '#EE6C4D', game_title.get_rect(topleft=(50, 20)))
+            pygame.draw.rect(self.screen, "#EE6C4D", sound_volume.surface.get_rect(
+                topleft=(60 + volume.get_width(), 30 + game_title.get_height())))
+            pygame.draw.rect(self.screen, "#EE6C4D", volume.get_rect(topleft=(50, 30 + game_title.get_height())))
+            self.screen.blit(game_title, (50, 20))
+            self.screen.blit(version_title, version_title.get_rect(bottomright=(pygame.display.get_window_size())))
+            self.screen.blit(sound_volume.surface, (60 + volume.get_width(), 30 + game_title.get_height()))
+            self.screen.blit(volume, (50, 30 + game_title.get_height()))
             menu_buttons.update(self.screen)
             self.profile_group.show(self.screen)
 
