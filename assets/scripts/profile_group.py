@@ -30,7 +30,7 @@ class ProfileGroup:
         clicked_button = self.buttons.check_click(pos)
 
         if clicked_button is None:
-            return
+            return True
 
         if clicked_button is self.profile_button:
             print('Нажата кнопка ПРОФИЛЬ')
@@ -53,6 +53,9 @@ class ProfileGroup:
             profile_sprite = pygame.image.load(
                 path_to_userdata(user.get_avatar(), str(user.get_user_id()))).convert_alpha()
             self.profile_button.set_image(profile_sprite)
+        else:
+            return False
+        return True
 
     def check_hover(self, pos):
         self.buttons.check_hover(pos)

@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS usermap
         self.cur.execute(build)
 
     def get_users(self):
-        sql = """SELECT username FROM users WHERE username!=\"guest\""""
+        sql = """SELECT username FROM users WHERE username!='guest'"""
         res = self.cur.execute(sql)
         return list(res)
 
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS usermap
         user = self.get_user_by_name(name)
         if not user:
             raise self.UserDoesntExistError(f"user with name {name} doesn't exist")
-        sql = """SELECT title, description, created FROM maps JOIN usermap ON (user_id=? OR user_id=0)"""
+        sql = """SELECT title, description, created, file FROM maps JOIN usermap ON (user_id=? OR user_id=0)"""
         res = self.cur.execute(sql, [user[0][0]])
         return list(res)
 
