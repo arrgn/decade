@@ -4,6 +4,7 @@ import traceback
 import pygame_gui
 
 from assets.scripts.path_module import create_dir, copy_file, path_to_asset, path_to_file
+from assets.scripts.events import SAVE_AND_RETURN
 
 if __name__ == "__main__":
     """
@@ -134,6 +135,8 @@ class Game:
                             print('Нажата кнопка НАСТРОЙКИ')
                         elif clicked_button is exit_button:
                             print('Нажата кнопка ВЫХОД')
+                            pygame.quit()
+                            sys.exit()
 
             # Отрисовываем всё по порядку
             self.screen.blit(bg, (0, 0))
@@ -179,7 +182,7 @@ class Game:
                         scroll.check_click(pygame.mouse.get_pos())
 
                 if clicked_button is back_button:
-                    self.show_menu()
+                    break
 
             keys = pygame.key.get_pressed()
             if keys[pygame.K_UP]:
@@ -217,11 +220,16 @@ class Game:
         bullet_group = pygame.sprite.Group()
         mob_group = pygame.sprite.Group()
 
-        while True:
+        run = True
+        while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                elif event == SAVE_AND_RETURN:
+                    print(event.action)
+                    run = False
+                    break
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         if camera_group.projection:
