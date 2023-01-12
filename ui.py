@@ -148,10 +148,15 @@ class IngameUI:
                                                manager=self.manager,
                                                container=self.viewport_panel,
                                                parent_element=self.viewport_panel,
-                                               text=name)
-            
+                                               text=f'{name}: 0')
+
             setattr(self, f'icon{i + 1}', icon)
             setattr(self, f'{name}Text', text)
+
+    def update_resource_amounts(self, resource_dict):
+        for key, value in resource_dict.items():
+            text = getattr(self, f'{key}Text')
+            text.set_text(f'{key}: {value}')
 
     def show_build_container(self, name):
         self.turret_container.hide()

@@ -136,6 +136,7 @@ class Game:
     def play_screen(self):
         # Сбрасываем экран, загружаем карту и создаём персонажа
         self.screen.fill(0)
+
         base_pos = LevelLoader.load(1)
         base = PlayerBase()
         base.rect = base.image.get_rect(topleft=base_pos.topleft)
@@ -146,6 +147,8 @@ class Game:
         UI.initUI()
         UI.start_timer(90)
 
+        setattr(base, 'UI', UI)
+
         player = Player((800, 640), LevelLoader.collision_rects)
         player_shadow = EntityShadow(player)
 
@@ -153,7 +156,21 @@ class Game:
         camera_group = CameraGroup(LevelLoader.whole_map, base, player_shadow, player, BUILDER.building_sprite)
         bullet_group = pygame.sprite.Group()
         mob_group = pygame.sprite.Group()
+        placement_angle = 0
 
+        def place_building_if_can():
+            # Если здание выбрано к стройке и клик был не на UI
+            if camera_group.projection and not pygame.Rect(980, 0, 300, 720).contains(*event.pos, 1, 1):
+                # Если не пересекается с другими зданиями
+                if camera_group.projection.rect.collidelist(BUILDER.taken_territory) == -1:
+                    # Если находится на земле
+                    if not pygame.sprite.collide_mask(LevelLoader.ordered_level_sprites[2], camera_group.projection):
+                        # Если не за картой
+                        if pygame.Rect(0, 0, 3040, 3040).contains(camera_group.projection.rect):  # TODO, подогнать под размеры карты.
+                            BUILDER.place(camera_group.projection)
+                            camera_group.remove(camera_group.projection)
+                            camera_group.projection = None
+                            return True
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -161,9 +178,10 @@ class Game:
                     sys.exit()
                 elif event.type == pygame.MOUSEWHEEL:
                     if camera_group.projection:
-                        angle = 90 if event.y > 0 else -90
-                        camera_group.projection.image = pygame.transform.rotate(camera_group.projection.image, angle)
-                        camera_group.projection.rotated_by = getattr(camera_group.projection, 'rotated_by', 0) + angle
+                        if event.y > 0:
+                            camera_group.projection.rotate_right()
+                        else:
+                            camera_group.projection.rotate_left()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         if camera_group.projection:
@@ -200,25 +218,25 @@ class Game:
                         if not building:
                             print(f"NO INFORMATION ABOUT {building_name}")
                         else:
+                            building.image = pygame.transform.rotate(building.image, placement_angle)
                             camera_group.project_building(building)
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == pygame.BUTTON_LEFT:
-                        # Если здание выбрано к стройке и клик был не на UI
-                        if camera_group.projection and not pygame.Rect(980, 0, 300, 720).contains(*event.pos, 1, 1):
-                            # Если не пересекается с другими зданиями
-                            if camera_group.projection.rect.collidelist(BUILDER.taken_territory) == -1:
-                                # Если находится на земле
-                                if not pygame.sprite.collide_mask(LevelLoader.ordered_level_sprites[2], camera_group.projection):
-                                    # Если не за картой
-                                    if pygame.Rect(0, 0, 3040, 3040).contains(camera_group.projection.rect):
-                                        BUILDER.place(camera_group.projection)
-                                        camera_group.remove(camera_group.projection)
-                                        camera_group.projection = None
+                        if place_building_if_can():
+                            pass
                         elif not pygame.Rect(980, 0, 300, 720).contains(*event.pos, 1, 1):
-                            # Стрельба если лкм не обработан.
+                            # Стрельба если здание не построилось
                             bullet = player.shoot()
                             bullet_group.add(bullet)
                             camera_group.add(bullet)
+                    elif event.button == pygame.BUTTON_RIGHT:
+                        state = place_building_if_can()
+                        if state:
+                            building = BUILDER.get_by_name(building.name)
+                            building.image = pygame.transform.rotate(building.image, placement_angle)
+                            camera_group.project_building(building)
+                        else:
+                            BUILDER.delete_build_on_click(event.pos + camera_group.offset)
 
                 UI.manager.process_events(event)
 

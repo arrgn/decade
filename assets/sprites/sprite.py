@@ -11,6 +11,8 @@ LEVEL_WIDTH, LEVEL_HEIGHT = 95 * TILE_WIDTH, 95 * TILE_HEIGHT
 
 
 class Structure(Sprite):
+    angles = (0, 90, 180, 270)
+
     def __init__(self, name, building_type, image, health, *groups) -> None:
         super().__init__(*groups)
         self.health = health
@@ -18,6 +20,24 @@ class Structure(Sprite):
         self.type = building_type
         self.image = image
         self.display_layer = 2
+        self.__angle = 0
+
+    @property
+    def rotated_by(self):
+        return self.__angle % 360
+
+    def rotate_left(self):
+        self.__angle -= 90
+        self.image = pygame.transform.rotate(self.image, -90)
+
+    def rotate_right(self):
+        self.__angle += 90
+        self.image = pygame.transform.rotate(self.image, 90)
+        # 270 -> 180 -> (360+180) % 360 -> 180
+        # 180 -> 90 -> (360+90) % 360 -> 90
+        # 90 -> 0 -> 360 % 360 -> 0
+        # 0 -> -90 -> (360+(-90)) % 360 -> 270
+
 
     def take_damage(self, amount):
         self.health -= amount
@@ -60,14 +80,32 @@ class Harvester(Structure):
                 if not conv.holding_item or conv.holding_item[0] == self.resource:
                     conv.transfer_resource(self.resource, self.holding)
                     self.holding = 0
+                    print(f'{self.holding=}')
                     break
 
 
 class PlayerBase(Structure):
+    """Singleton"""
+    __instance = None
+
     def __init__(self, *groups) -> None:
-        surf = pygame.Surface((64, 64)).convert()
-        surf.blit(pygame.image.load(join('assets', 'maps', '2x2Buildings.png')), (0, 0), (448, 0, 64, 64))
-        super().__init__("PlayerBase", 'Misc', surf, 2000)
+        if not self.__class__.__instance:
+            surf = pygame.Surface((64, 64)).convert()
+            surf.blit(pygame.image.load(join('assets', 'maps', '2x2Buildings.png')), (0, 0), (448, 0, 64, 64))
+            super().__init__("PlayerBase", 'Misc', surf, 2000)
+            self.resources = dict.fromkeys(('Coal', 'Copper', 'Hematite', 'Titan', 'Emerald'), 0)
+            self.UI = None
+            self.__class__.__instance = self
+
+    def transfer_resource(self, resource, amount):
+        self.resources[resource] += amount
+        self.UI.update_resource_amounts(self.resources)
+
+    @classmethod
+    def getInstance(cls):
+        if not cls.__instance:
+            cls.__instance = cls()
+        return cls.__instance 
 
 
 class Wall(Structure):
@@ -89,6 +127,14 @@ class Conveyor(Structure):
         print(f'Received: {resource=}, {self.holding_item[1]}')
 
     def update(self, dt, conveyer_dict, base_pos) -> None:
+        # if len(conveyer_dict) >= 2:
+        #     conv = conveyer_dict[tuple(conveyer_dict.keys())[1]]
+        #     print(conv.rect, conv.looking_at)
+        # print(len(conveyer_dict))
+        # if self.holding_item:
+        #     conveyor = conveyer_dict.get(tuple(self.looking_at))
+        #     print(conveyor)
+
         if self.holding_item and self.looking_at:
             coords = tuple(self.looking_at)
             if coords in conveyer_dict:
@@ -96,8 +142,9 @@ class Conveyor(Structure):
                 if not conveyor.holding_item or self.holding_item[0] == conveyor.holding_item[0]:
                     conveyor.transfer_resource(*self.holding_item)
                     self.holding_item = None
-            else:
-                print(coords, base_pos)
+            elif coords == base_pos:
+                PlayerBase.getInstance().transfer_resource(*self.holding_item)
+                self.holding_item = None
 
 
 

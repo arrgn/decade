@@ -9,8 +9,14 @@ class StructureGroup:
     def __init__(self) -> None:
         self.sprites = list()
 
+    def __contains__(self, key):
+        return key in self.sprites
+
     def __len__(self):
         return len(self.sprites)
+
+    def remove(self, sprite):
+        self.sprites.remove(sprite)
 
     def add(self, sprite):
         self.sprites.append(sprite)
@@ -83,6 +89,38 @@ def init(level_size, ore_dict, base_pos):
                 cls.build_registry = tuple(cls.build_registry)
 
         @classmethod
+        def delete_build_on_click(cls, point):
+            for build in cls.built_buildings:
+                if build.rect.collidepoint(point):
+                    cls.built_buildings.remove(build)
+                    cls.taken_territory.remove(build.rect)
+
+                    cleared_surf = pygame.Surface((64, 64), pygame.SRCALPHA)
+                    cleared_surf.fill((255, 255, 255, 255))
+                    
+                    cls.buildings_surface.fill((0, 0, 0, 0), build)
+                    cls.building_sprite.image = cls.buildings_surface
+
+                    is_conveyor = False
+                    if tuple(build.rect) in cls.rects_to_conveyors:
+                        is_conveyor = True
+                        del cls.rects_to_conveyors[tuple(build.rect)]
+                    if build in cls.conveyors_to_looks:
+                        del cls.conveyors_to_looks[build]
+                    if is_conveyor:
+                        for harvester in cls.harvester_group.sprites:
+                            harvester.update_conveyor_info(cls.rects_to_conveyors)
+
+                    if build in cls.harvester_group:
+                        cls.harvester_group.remove(build)
+                    elif build in cls.conveyers_group:
+                        cls.conveyers_group.remove(build)
+
+                    return True
+            else:
+                print("COULDN'T FIND ANYTHING")
+
+        @classmethod
         def get_by_name(cls, name):
             for build in cls.build_registry:
                 if build.name == name:
@@ -112,13 +150,17 @@ def init(level_size, ore_dict, base_pos):
                 angle = getattr(building, 'rotated_by', None)
                 
                 offset_Rect = building.rect.copy()
-                if angle == -90: # right
+                if angle == 270: # right
+                    print('right chosen!')
                     offset_Rect.left += 64
                 elif angle == 180: # bottom
+                    print('bottom chosen!')
                     offset_Rect.top += 64
-                elif angle == -270: # left
+                elif angle == 90: # left
+                    print('left chosen!')
                     offset_Rect.left -= 64
                 else:
+                    print('top chosen!')
                     offset_Rect.top -= 64
                 building.looking_at = offset_Rect
 
