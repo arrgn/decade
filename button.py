@@ -96,6 +96,21 @@ class ButtonImage(pygame.sprite.Sprite):
         return image
 
 
+class SurfaceButton(pygame.sprite.Sprite):
+    def __init__(self, rect: Union[tuple, pygame.Rect], image: pygame.Surface, data: str) -> None:
+        super().__init__()
+        self.rect = pygame.Rect(rect)
+        self.image = image
+        self.data = data
+
+    def update(self, screen: pygame.Surface) -> None:
+        """
+            Отрисовывает кнопку на экране. Ничего не возвращает
+            He забыть обновить сам экран через pygame.display.update()
+        """
+        screen.blit(self.image, self.rect)
+
+
 class ButtonGroup(pygame.sprite.Group):
     def __init__(self, *sprites) -> None:
         super().__init__(*sprites)
@@ -116,3 +131,6 @@ class ButtonGroup(pygame.sprite.Group):
         for button in self.sprites():
             if button.rect.collidepoint(pos):
                 return button
+
+    def change_buttons(self, *sprites):
+        super().__init__(*sprites)

@@ -129,7 +129,7 @@ class Game:
 
                         if clicked_button is play_button:
                             print('Нажата кнопка ИГРАТЬ')
-                            self.map_management()
+                            self.map_management(lambda: LevelLoader.levels)
                         elif clicked_button is options_button:
                             print('Нажата кнопка НАСТРОЙКИ')
                         elif clicked_button is exit_button:
@@ -146,7 +146,7 @@ class Game:
             self.clock.tick(self.FPS)
             pygame.display.update()
 
-    def map_management(self):
+    def map_management(self, get_maps):
         # Масштабируем задний фон под размеры окна
         unscaled_bg = pygame.image.load(path_to_asset('images', 'MainMenuBg.jpg')).convert()
         bg = pygame.transform.scale(unscaled_bg, pygame.display.get_window_size())
@@ -159,7 +159,7 @@ class Game:
         back_button = Button((50, 650, 200, 50), "Back", font, 'White', '#0496FF', '#006BA6')
         menu_buttons = ButtonGroup(back_button)
 
-        scroll = ScrollArea((50, 200, 675, 400), 100, 5, 128, (0, 0, 0))
+        scroll = ScrollArea((50, 200, 675, 400), 100, 5, 128, (0, 0, 0), get_maps, self.play_screen)
 
         while True:
             for event in pygame.event.get():
@@ -171,13 +171,15 @@ class Game:
                     menu_buttons.check_hover(event.pos)
                     self.profile_group.check_hover(event.pos)
 
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    clicked_button = menu_buttons.check_click(event.pos)
-                    if clicked_button is None:
-                        self.profile_group.check_click(event.pos)
+            if pygame.mouse.get_pressed()[0]:
+                clicked_button = menu_buttons.check_click(pygame.mouse.get_pos())
+                if clicked_button is None:
+                    if self.profile_group.check_click(pygame.mouse.get_pos()):
+                        scroll.check_click(pygame.mouse.get_pos())
 
-                    if clicked_button is back_button:
-                        self.show_menu()
+                if clicked_button is back_button:
+                    self.show_menu()
+
             keys = pygame.key.get_pressed()
             if keys[pygame.K_UP]:
                 scroll.scroll(-3)
@@ -196,10 +198,10 @@ class Game:
             self.clock.tick(self.FPS)
             pygame.display.update()
 
-    def play_screen(self):
+    def play_screen(self, map_name):
         # Сбрасываем экран, загружаем карту и создаём персонажа
         self.screen.fill(0)
-        LevelLoader.load(1)
+        LevelLoader.load(map_name)
         BUILDER = BuilderInit((3040, 3040), LevelLoader.ore_dict)
         Bullet.init()
         UI = IngameUI(self.screen.get_size())
