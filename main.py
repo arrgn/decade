@@ -205,20 +205,42 @@ class Game:
     def play_screen(self, map_name):
         # Сбрасываем экран, загружаем карту и создаём персонажа
         self.screen.fill(0)
-        LevelLoader.load(map_name)
-        BUILDER = BuilderInit((3040, 3040), LevelLoader.ore_dict)
+        base_pos = LevelLoader.load(map_name)
+        base = PlayerBase()
+        base.rect = base.image.get_rect(topleft=base_pos.topleft)
+        BUILDER = BuilderInit((3040, 3040), LevelLoader.ore_dict, base_pos)
+
         Bullet.init()
-        UI = IngameUI(self.screen.get_size())
+        UI = IngameUI(self.screen.get_size(), level_number)
         UI.initUI()
         UI.start_timer(90)
+
+        setattr(base, 'UI', UI)
 
         player = Player((800, 640), LevelLoader.collision_rects)
         player_shadow = EntityShadow(player)
 
         # Создаём группу спрайтов, которая будет служить камерой
-        camera_group = CameraGroup(LevelLoader.whole_map, player_shadow, player, BUILDER.building_sprite)
+        camera_group = CameraGroup(LevelLoader.whole_map, base, player_shadow, player, BUILDER.building_sprite)
         bullet_group = pygame.sprite.Group()
         mob_group = pygame.sprite.Group()
+
+
+        def place_building_if_can():
+            # Если здание выбрано к стройке и клик был не на UI
+            if camera_group.projection and not pygame.Rect(980, 0, 300, 720).contains(*event.pos, 1, 1):
+                # Если не пересекается с другими зданиями
+                if camera_group.projection.rect.collidelist(BUILDER.taken_territory) == -1:
+                    # Если находится на земле
+                    if not pygame.sprite.collide_mask(LevelLoader.ordered_level_sprites[2], camera_group.projection):
+                        # Если не за картой
+                        if pygame.Rect(0, 0, 3040, 3040).contains(camera_group.projection.rect):  # TODO, подогнать под размеры карты.
+
+                            BUILDER.place(camera_group.projection)
+                            camera_group.remove(camera_group.projection)
+
+                            camera_group.projection = None
+                            return True
 
         run = True
         while run:
@@ -230,6 +252,12 @@ class Game:
                     print(event.action)
                     run = False
                     break
+                elif event.type == pygame.MOUSEWHEEL:
+                    if camera_group.projection:
+                        if event.y > 0:
+                            camera_group.projection.rotate_right()
+                        else:
+                            camera_group.projection.rotate_left()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         if camera_group.projection:
@@ -251,6 +279,8 @@ class Game:
                             UI.building_panel.show()
                             UI.viewport_panel.show()
                             UI.show_build_container('turret_container')
+                    elif event.key == pygame.K_r and camera_group.projection:
+                        camera_group.projection.rotate_right()
                 elif event.type == pygame_gui.UI_BUTTON_PRESSED:
                     obj_id = event.ui_object_id
                     hash_index = obj_id.rfind('#')
@@ -263,26 +293,32 @@ class Game:
                         # Кнопки зданий внутри категорий
                         building_name = obj_id[hash_index + 1:].replace('_', ' ')
                         building = BUILDER.get_by_name(building_name)
-                        camera_group.project_building(building)
+                        if not building:
+                            print(f"NO INFORMATION ABOUT {building_name}")
+                        else:
+                            # building.image = pygame.transform.rotate(building.image, placement_angle)
+                            camera_group.project_building(building)
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == pygame.BUTTON_LEFT:
-                        # Если здание выбрано к стройке и клик был не на UI
-                        if camera_group.projection and not pygame.Rect(980, 0, 300, 720).contains(*event.pos, 1, 1):
-                            # Если не пересекается с другими зданиями
-                            if camera_group.projection.rect.collidelist(BUILDER.taken_territory) == -1:
-                                # Если находится на земле
-                                if not pygame.sprite.collide_mask(LevelLoader.ordered_level_sprites[2],
-                                                                  camera_group.projection):
-                                    # Если не за картой
-                                    if pygame.Rect(0, 0, 3040, 3040).contains(camera_group.projection.rect):
-                                        BUILDER.place(camera_group.projection)
-                                        camera_group.remove(camera_group.projection)
-                                        camera_group.projection = None
+                        if place_building_if_can():
+                            pass
                         elif not pygame.Rect(980, 0, 300, 720).contains(*event.pos, 1, 1):
-                            # Стрельба если лкм не обработан.
+                            # Стрельба если здание не построилось
                             bullet = player.shoot()
                             bullet_group.add(bullet)
                             camera_group.add(bullet)
+                    elif event.button == pygame.BUTTON_RIGHT:
+                        state = place_building_if_can()
+                        if state:
+                            times = building.angle % 360
+                            building = BUILDER.get_by_name(building.name)
+
+                            for i in range(times // 90):
+                                building.rotate_left()
+
+                            camera_group.project_building(building)
+                        else:
+                            BUILDER.delete_build_on_click(event.pos + camera_group.offset)
 
                 UI.manager.process_events(event)
 
@@ -290,6 +326,8 @@ class Game:
             dt = self.clock.tick(self.FPS)
             player.update(dt)
             player_shadow.update()
+
+            BUILDER.update(dt)
 
             # Двигаем все выпущенные пули и проверяем коллизию
             bullet_group.update(dt / 1000)
