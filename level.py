@@ -6,13 +6,6 @@ from assets.scripts.path_module import path_to_asset
 
 
 class LevelLoader:
-
-    levels = [
-        ["LEVEL 1", "First level", "12.01.2023", "Map.tmx"],
-        ["LEVEL 2", "Second level", "12.01.2023", "NONE.tmx"],
-        ["LEVEL 3", "Third level", "12.01.2023", "NONE.tmx"],
-    ]
-
     levels = {
         "LEVEL 1": {
             'TILE_WIDTH': 32,
@@ -47,7 +40,7 @@ class LevelLoader:
 
             'BASE_LOCATION': pygame.Rect(1312, 2560, 64, 64),
             'WAVES': {
-        
+
             }
         },
 
@@ -62,7 +55,7 @@ class LevelLoader:
 
             'BASE_LOCATION': pygame.Rect(1312, 2560, 64, 64),
             'WAVES': {
-        
+
             }
         }
     }
@@ -78,7 +71,7 @@ class LevelLoader:
             @param level имя файла с картой
         """
         # Создаём словарь с tile'ами разных слоёв
-        tmx_data = load_pygame(path_to_asset("maps", level))
+        tmx_data = load_pygame(path_to_asset("maps", cls.levels[level]["FILE_NAME"]))
 
         tiles = dict()
         border_tiles = list()
@@ -94,13 +87,17 @@ class LevelLoader:
             tiles[layerIndex] = list()
             if hasattr(layer, 'data'):  # Слой с плитками
                 for x, y, surf in layer.tiles():
-                    tile = Tile(layerIndex, (x * cls.levels[level]['TILE_WIDTH'], y * cls.levels[level]['TILE_HEIGHT']), surf)
-                    if layer.name == 'Стены' and tmx_data.get_tile_properties(x, y, 2).get('class', None) == 'Препятствие':
+                    tile = Tile(layerIndex, (x * cls.levels[level]['TILE_WIDTH'], y * cls.levels[level]['TILE_HEIGHT']),
+                                surf)
+                    if layer.name == 'Стены' and tmx_data.get_tile_properties(x, y, 2).get('class',
+                                                                                           None) == 'Препятствие':
                         border_tiles.append(tile.rect)
                     elif layer.name == 'Руда':
                         ore_class = tmx_data.get_tile_properties(x, y, 1).get('class', None)
                         if ore_class and ore_class in ore_dict:
-                            ore_dict[ore_class].append(pygame.Rect(x * cls.levels[level]['TILE_WIDTH'], y * cls.levels[level]['TILE_HEIGHT'], 32, 32))
+                            ore_dict[ore_class].append(
+                                pygame.Rect(x * cls.levels[level]['TILE_WIDTH'], y * cls.levels[level]['TILE_HEIGHT'],
+                                            32, 32))
 
                     tiles[layerIndex].append(tile)
             else:  # Слой с объектами

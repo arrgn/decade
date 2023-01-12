@@ -6,7 +6,7 @@ from button import SurfaceButton, ButtonGroup
 
 class ScrollArea:
     def __init__(self, rect: Union[pg.Rect, tuple], height: int, margin: int, alpha: int,
-                 color: tuple[int, int, int], get_data: Callable[[], list[list[str, str, str, str]]],
+                 color: tuple[int, int, int], get_data: Callable[[], dict],
                  send_data: Callable[[Any], Any]) -> None:
         self.rect = pg.Rect(rect)
         self.height = height
@@ -36,25 +36,27 @@ class ScrollArea:
         maps = self.get_data()
         self.buttons.clear()
         self.resize_bg(len(maps))
-        for i in range(len(maps)):
+        i = 0
+        print(maps)
+        for k, v in maps.items():
             # Готовим пространство
             rect = pg.Rect((self.margin, self.margin + self.height * i,
                             self.rect[2] - 2 * self.margin, self.height - 2 * self.margin))
             data = pg.Surface(rect[2:])
 
             # Создаем тексты
-            title = font.render(maps[i][0], True, "#E1FAF9")
-            description = small_font.render(maps[i][1], True, "#E1FAF9")
-            created = small_font.render(maps[i][2], True, "#E1FAF9")
+            title = font.render(k, True, "#E1FAF9")
+            description = small_font.render(v["DESCRIPTION"], True, "#E1FAF9")
+            created = small_font.render(v["DATE"], True, "#E1FAF9")
 
             # Отрисовываем тексты
             data.blit(title, (self.margin, self.margin))
             data.blit(description, (self.margin, self.margin + title.get_height()))
             data.blit(created, (rect[2] - created.get_width(), self.margin))
 
-            self.buttons.append(SurfaceButton(rect, data, maps[i][3]))
+            self.buttons.append(SurfaceButton(rect, data, k))
+            i += 1
 
-            # self.bg.blit(data, rect)
         self.button_group.change_buttons(*self.buttons)
 
     def scroll(self, dy):

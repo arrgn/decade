@@ -1,3 +1,4 @@
+from __future__ import annotations
 import math
 
 import pygame
@@ -67,7 +68,7 @@ class Harvester(Structure):
             self.resource_timer = 0
             self.holding = min(10, self.holding + self.harvest_rate)
             # print(self.resource, self.holding)
-        
+
         if self.holding and self.nearby_conveyors:
             for conv in self.nearby_conveyors:
                 if not conv.holding_item or conv.holding_item[0] == self.resource:
@@ -81,7 +82,7 @@ class PlayerBase(Structure):
     """Singleton"""
     __instance = None
 
-    def __init__(self, *groups) -> None:
+    def __init__(self, *groups) -> PlayerBase:
         if not self.__class__.__instance:
             surf = pygame.Surface((64, 64)).convert()
             surf.blit(pygame.image.load(join('assets', 'maps', '2x2Buildings.png')), (0, 0), (448, 0, 64, 64))
@@ -100,7 +101,7 @@ class PlayerBase(Structure):
     def getInstance(cls):
         if not cls.__instance:
             cls.__instance = cls()
-        return cls.__instance 
+        return cls.__instance
 
 
 class Wall(Structure):
@@ -111,7 +112,7 @@ class Wall(Structure):
 class Conveyor(Structure):
     def __init__(self, name, image, health, *groups) -> None:
         super().__init__(name, 'Conveyor', image, health, *groups)
-        self.holding_item = None 
+        self.holding_item = None
         self.looking_at: pygame.Rect
 
     def transfer_resource(self, resource, amount):
@@ -140,8 +141,6 @@ class Conveyor(Structure):
             elif coords == base_pos:
                 PlayerBase.getInstance().transfer_resource(*self.holding_item)
                 self.holding_item = None
-
-
 
 
 class Bullet(Sprite):
@@ -253,7 +252,7 @@ class Player(Sprite):
 
             self.direction.normalize_ip()
             newPos = self.rect.center + \
-                (self.direction * self.speed * dt / 1000)
+                     (self.direction * self.speed * dt / 1000)
             if self.collideables:
                 for rect in self.collideables:
                     if rect.collidepoint(newPos):

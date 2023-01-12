@@ -3,7 +3,7 @@ import pygame
 import sys
 
 from pygame_gui.core import ObjectID
-from assets.scripts.path_module import path_to_file
+from assets.scripts.path_module import path_to_file, path_to_asset
 from assets.scripts.events import SAVE_AND_RETURN
 
 
@@ -127,13 +127,12 @@ class IngameUI:
                                                  anchors={'centerx': 'centerx', 'bottom': 'bottom'})
 
         # ИНТЕРФЕЙС РЕСУРСОВ
-        spritesheet = pygame.image.load(os.path.join('assets', 'sprites', 'ResourceIcons.png')).convert_alpha()
+        spritesheet = pygame.image.load(path_to_asset('sprites', 'ResourceIcons.png')).convert_alpha()
         icon_surfaces = list()
         for x in range(5):
             surf = pygame.Surface((50, 50)).convert_alpha()
             surf.blit(spritesheet, (0, 0), (x * 50, 0, 50, 50))
             icon_surfaces.append(surf)
-            
 
         self.text1 = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(0, 0, 300, 50),
                                                  text='Resources in base:',

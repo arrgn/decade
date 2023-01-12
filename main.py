@@ -225,7 +225,6 @@ class Game:
         bullet_group = pygame.sprite.Group()
         mob_group = pygame.sprite.Group()
 
-
         def place_building_if_can():
             # Если здание выбрано к стройке и клик был не на UI
             if camera_group.projection and not pygame.Rect(980, 0, 300, 720).contains(*event.pos, 1, 1):
@@ -234,7 +233,8 @@ class Game:
                     # Если находится на земле
                     if not pygame.sprite.collide_mask(LevelLoader.ordered_level_sprites[2], camera_group.projection):
                         # Если не за картой
-                        if pygame.Rect(0, 0, 3040, 3040).contains(camera_group.projection.rect):  # TODO, подогнать под размеры карты.
+                        if pygame.Rect(0, 0, 3040, 3040).contains(
+                                camera_group.projection.rect):  # TODO, подогнать под размеры карты.
 
                             BUILDER.place(camera_group.projection)
                             camera_group.remove(camera_group.projection)
