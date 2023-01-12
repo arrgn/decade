@@ -171,6 +171,7 @@ class Game:
                     menu_buttons.check_hover(event.pos)
                     self.profile_group.check_hover(event.pos)
 
+            # Отдельно проверяем нажатие мыши, тк mousebuttondown срабатывает на колесико
             if pygame.mouse.get_pressed()[0]:
                 clicked_button = menu_buttons.check_click(pygame.mouse.get_pos())
                 if clicked_button is None:
