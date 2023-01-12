@@ -14,11 +14,14 @@ class LevelLoader:
     ]
 
     levels = {
-        1: {
+        "LEVEL 1": {
             'TILE_WIDTH': 32,
             'TILE_HEIGHT': 32,
             'LEVEL_SIZE': (95 * 32, 95 * 32),
             'SUN_POSITION': pygame.math.Vector2(-7000, -5000),
+            'DESCRIPTION': 'First level',
+            'DATE': '12.01.2023',
+            'FILE_NAME': "Map.tmx",
 
             'BASE_LOCATION': pygame.Rect(1312, 2560, 64, 64),
             'WAVES': {
@@ -33,11 +36,14 @@ class LevelLoader:
             }
         },
 
-        2: {
+        "LEVEL 2": {
             'TILE_WIDTH': 32,
             'TILE_HEIGHT': 32,
             'LEVEL_SIZE': (50 * 32, 50 * 32),
             'SUN_POSITION': pygame.math.Vector2(-7000, -5000),
+            'DESCRIPTION': 'Second level',
+            'DATE': '12.01.2023',
+            'FILE_NAME': "Map2.tmx",
 
             'BASE_LOCATION': pygame.Rect(1312, 2560, 64, 64),
             'WAVES': {
@@ -45,11 +51,14 @@ class LevelLoader:
             }
         },
 
-        3: {
+        "LEVEL 3": {
             'TILE_WIDTH': 32,
             'TILE_HEIGHT': 32,
             'LEVEL_SIZE': (95 * 32, 95 * 32),
             'SUN_POSITION': pygame.math.Vector2(-7000, -5000),
+            'DESCRIPTION': 'Third level',
+            'DATE': '12.01.2023',
+            'FILE_NAME': "Map3.tmx",
 
             'BASE_LOCATION': pygame.Rect(1312, 2560, 64, 64),
             'WAVES': {

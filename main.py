@@ -211,7 +211,7 @@ class Game:
         BUILDER = BuilderInit((3040, 3040), LevelLoader.ore_dict, base_pos)
 
         Bullet.init()
-        UI = IngameUI(self.screen.get_size(), level_number)
+        UI = IngameUI(self.screen.get_size(), map_name)
         UI.initUI()
         UI.start_timer(90)
 
