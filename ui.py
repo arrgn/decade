@@ -1,9 +1,10 @@
 import pygame_gui
 import pygame
 import sys
-import os.path
+
 from pygame_gui.core import ObjectID
 from assets.scripts.path_module import path_to_file
+from assets.scripts.events import SAVE_AND_RETURN
 
 
 class ProgressBarWOText(pygame_gui.elements.UIProgressBar):
@@ -44,17 +45,16 @@ class IngameUI:
         # МЕНЮ СТРОЙКИ
         self.building_panel = pygame_gui.elements.UIPanel(pygame.Rect(-300, 0, 300, self.height // 2),
                                                           manager=self.manager,
-                                                          anchors={'right':'right', 'top': 'top'})
+                                                          anchors={'right': 'right', 'top': 'top'})
         self.viewport_panel = pygame_gui.elements.UIPanel(pygame.Rect(-300, -self.height // 2, 300, self.height // 2),
                                                           manager=self.manager,
                                                           anchors={'right': 'right', 'bottom': 'bottom'})
 
-        
         self.itemcontainer2 = pygame_gui.elements.UIScrollingContainer(pygame.Rect(60, 0, 240, self.height // 2),
-                                                                      manager=self.manager,
-                                                                      container=self.building_panel,
-                                                                      parent_element=self.building_panel,
-                                                                      visible=False)
+                                                                       manager=self.manager,
+                                                                       container=self.building_panel,
+                                                                       parent_element=self.building_panel,
+                                                                       visible=False)
 
         # Индексация
         Placeables = {
@@ -69,13 +69,14 @@ class IngameUI:
                                                   text='',
                                                   manager=self.manager,
                                                   container=self.building_panel,
-                                                  object_id=ObjectID(object_id=f'#{buttonId}', class_id='@build_categories'))
+                                                  object_id=ObjectID(object_id=f'#{buttonId}',
+                                                                     class_id='@build_categories'))
 
             container = pygame_gui.elements.UIScrollingContainer(pygame.Rect(60, 0, 240, self.height // 2),
-                                                                manager=self.manager,
-                                                                container=self.building_panel,
-                                                                parent_element=self.building_panel,
-                                                                visible=False)
+                                                                 manager=self.manager,
+                                                                 container=self.building_panel,
+                                                                 parent_element=self.building_panel,
+                                                                 visible=False)
 
             setattr(self, f'{buttonId.lower()}_button', button)
             setattr(self, f'{buttonId.lower()}_container', container)
@@ -90,8 +91,9 @@ class IngameUI:
                                                       manager=self.manager,
                                                       container=container,
                                                       parent_element=container,
-                                                      object_id=ObjectID(object_id=f'#{build.replace(" ", "_")}', class_id='@Place_buttons'))
-                                                      
+                                                      object_id=ObjectID(object_id=f'#{build.replace(" ", "_")}',
+                                                                         class_id='@Place_buttons'))
+
         # ИНТЕРФЕЙС ПАУЗЫ
         panel_rect = pygame.Rect(0, 0, 160, 160)
         panel_rect.center = (self.width // 2, self.height // 2)
@@ -183,6 +185,8 @@ class IngameUI:
                 elif event.type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == self.unpause_button:
                         return self.pause_panel.hide()
+                    elif event.ui_element == self.return_button:
+                        return pygame.event.post(SAVE_AND_RETURN)
                     elif event.ui_element == self.quit_button:
                         pygame.quit()
                         sys.exit(0)

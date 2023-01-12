@@ -1,15 +1,32 @@
-import math
+import logging.config
 import sys
-
-import pygame
+import traceback
 import pygame_gui
 
-from assets.scripts.path_module import path_to_file
+from assets.scripts.path_module import create_dir, copy_file, path_to_asset, path_to_file
+from assets.scripts.events import SAVE_AND_RETURN
+
+if __name__ == "__main__":
+    """
+        Прикол в том, что при создании юзера мы копируем дефолтные файлы из папки userdata/default.
+        Если разместить этот код после импорта юзера/окна авторизации - вылезет ошибка, так как юзер не сможет
+        копировать файлы либо окно авторизации не сможет открыть  файл.
+        В этом месте лучше копировать все необходимые файлы по умолчанию для юзера.
+    """
+    create_dir("userdata", "default")
+    copy_file(path_to_asset("images", "default.png"), "default")
+
+from PyQt5 import Qt
+from config import release, music_player
+from assets.scripts.loggers import logger
 from assets.sprites.sprite import *
 from building import init as BuilderInit
 from button import Button, ButtonGroup
 from level import LevelLoader
 from ui import IngameUI
+from assets.scripts.profile_group import ProfileGroup
+from assets.scripts.fonts import *
+from assets.scripts.scroll_area import ScrollArea
 
 
 class CameraGroup(pygame.sprite.Group):
@@ -55,12 +72,14 @@ class Game:
 
     def __init__(self, width, height) -> None:
         pygame.init()
-        pygame.font.init()
-        pygame.mixer.init()
         pygame.display.set_caption('Untitled')
         self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
+        self.profile_group = ProfileGroup()
         pygame.display.update()
+
+        # Запускаем музочку.
+        music_player.play_bg_music('Waterfall.mp3', 3, 0.1)
 
     def run(self) -> None:
         while True:
@@ -78,13 +97,10 @@ class Game:
 
     def show_menu(self):
         # Масштабируем задний фон под размеры окна
-        unscaled_bg = pygame.image.load(path_to_file('assets', 'images', 'MainMenuBg.jpg')).convert()
+        unscaled_bg = pygame.image.load(path_to_asset('images', 'MainMenuBg.jpg')).convert()
         bg = pygame.transform.scale(unscaled_bg, pygame.display.get_window_size())
 
         # Отрисовываем тексты
-        small_font = pygame.font.Font(path_to_file('assets', 'fonts', 'CinnamonCoffeCake.ttf'), 20)
-        font = pygame.font.Font(path_to_file('assets', 'fonts', 'CinnamonCoffeCake.ttf'), 35)
-        big_font = pygame.font.Font(path_to_file('assets', 'fonts', 'CinnamonCoffeCake.ttf'), 100)
         game_title = big_font.render('Untitled game', True, '#E1FAF9')
         version_title = small_font.render('Version Prealpha 0.1', True, '#E1FAF9')
 
@@ -93,11 +109,6 @@ class Game:
         options_button = Button((50, 275, 200, 50), 'Options', font, 'White', '#0496FF', '#006BA6')
         exit_button = Button((50, 350, 200, 50), 'Exit', font, 'White', '#0496FF', '#006BA6')
         menu_buttons = ButtonGroup(play_button, options_button, exit_button)
-
-        # Запускаем музочку.
-        pygame.mixer.music.load(path_to_file('assets', 'music', 'Waterfall.mp3'))
-        pygame.mixer.music.play(3)
-        pygame.mixer.music.set_volume(0.1)
 
         # Main loop
         while True:
@@ -108,20 +119,24 @@ class Game:
 
                 elif event.type == pygame.MOUSEMOTION:
                     menu_buttons.check_hover(event.pos)
+                    self.profile_group.check_hover(event.pos)
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     # Проверяем, нажата ли левая кнопка мыши, и находится ли курсор над кнопкой.
                     if event.button == pygame.BUTTON_LEFT:
                         clicked_button = menu_buttons.check_click(event.pos)
-                        if clicked_button is None: continue
+                        if clicked_button is None:
+                            self.profile_group.check_click(event.pos)
 
                         if clicked_button is play_button:
                             print('Нажата кнопка ИГРАТЬ')
-                            self.play_screen()
+                            self.map_management(lambda: LevelLoader.levels)
                         elif clicked_button is options_button:
                             print('Нажата кнопка НАСТРОЙКИ')
                         elif clicked_button is exit_button:
                             print('Нажата кнопка ВЫХОД')
+                            pygame.quit()
+                            sys.exit()
 
             # Отрисовываем всё по порядку
             self.screen.blit(bg, (0, 0))
@@ -129,21 +144,72 @@ class Game:
             self.screen.blit(game_title, (50, 20))
             self.screen.blit(version_title, version_title.get_rect(bottomright=(pygame.display.get_window_size())))
             menu_buttons.update(self.screen)
+            self.profile_group.show(self.screen)
 
             self.clock.tick(self.FPS)
             pygame.display.update()
 
-    def play_screen(self):
+    def map_management(self, get_maps):
+        # Масштабируем задний фон под размеры окна
+        unscaled_bg = pygame.image.load(path_to_asset('images', 'MainMenuBg.jpg')).convert()
+        bg = pygame.transform.scale(unscaled_bg, pygame.display.get_window_size())
 
-        level_number = 2
+        # Отрисовываем тексты
+        game_title = big_font.render('Untitled game', True, '#E1FAF9')
+        version_title = small_font.render('Version Prealpha 0.1', True, '#E1FAF9')
+
+        # Создаём кнопки и добавляем их в группу
+        back_button = Button((50, 650, 200, 50), "Back", font, 'White', '#0496FF', '#006BA6')
+        menu_buttons = ButtonGroup(back_button)
+
+        scroll = ScrollArea((50, 200, 675, 400), 100, 5, 128, (0, 0, 0), get_maps, self.play_screen)
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                elif event.type == pygame.MOUSEMOTION:
+                    menu_buttons.check_hover(event.pos)
+                    self.profile_group.check_hover(event.pos)
+
+            # Отдельно проверяем нажатие мыши, тк mousebuttondown срабатывает на колесико
+            if pygame.mouse.get_pressed()[0]:
+                clicked_button = menu_buttons.check_click(pygame.mouse.get_pos())
+                if clicked_button is None:
+                    if self.profile_group.check_click(pygame.mouse.get_pos()):
+                        scroll.check_click(pygame.mouse.get_pos())
+
+                if clicked_button is back_button:
+                    break
+
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_UP]:
+                scroll.scroll(-3)
+            elif keys[pygame.K_DOWN]:
+                scroll.scroll(3)
+
+            # Отрисовываем всё по порядку
+            self.screen.blit(bg, (0, 0))
+            pygame.draw.rect(self.screen, '#EE6C4D', game_title.get_rect(topleft=(50, 20)))
+            self.screen.blit(game_title, (50, 20))
+            self.screen.blit(version_title, version_title.get_rect(bottomright=(pygame.display.get_window_size())))
+            scroll.show(self.screen)
+            menu_buttons.update(self.screen)
+            self.profile_group.show(self.screen)
+
+            self.clock.tick(self.FPS)
+            pygame.display.update()
+
+    def play_screen(self, map_name):
         # Сбрасываем экран, загружаем карту и создаём персонажа
         self.screen.fill(0)
-
-        base_pos = LevelLoader.load(level_number)
+        base_pos = LevelLoader.load(map_name)
         base = PlayerBase()
         base.rect = base.image.get_rect(topleft=base_pos.topleft)
-
         BUILDER = BuilderInit((3040, 3040), LevelLoader.ore_dict, base_pos)
+
         Bullet.init()
         UI = IngameUI(self.screen.get_size(), level_number)
         UI.initUI()
@@ -158,6 +224,7 @@ class Game:
         camera_group = CameraGroup(LevelLoader.whole_map, base, player_shadow, player, BUILDER.building_sprite)
         bullet_group = pygame.sprite.Group()
         mob_group = pygame.sprite.Group()
+
 
         def place_building_if_can():
             # Если здание выбрано к стройке и клик был не на UI
@@ -174,11 +241,17 @@ class Game:
 
                             camera_group.projection = None
                             return True
-        while True:
+
+        run = True
+        while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                elif event == SAVE_AND_RETURN:
+                    print(event.action)
+                    run = False
+                    break
                 elif event.type == pygame.MOUSEWHEEL:
                     if camera_group.projection:
                         if event.y > 0:
@@ -250,7 +323,7 @@ class Game:
                 UI.manager.process_events(event)
 
             # Обновляем местоположение игрока и его тень
-            dt = self.clock.tick(self.FPS) 
+            dt = self.clock.tick(self.FPS)
             player.update(dt)
             player_shadow.update()
 
@@ -258,7 +331,8 @@ class Game:
 
             # Двигаем все выпущенные пули и проверяем коллизию
             bullet_group.update(dt / 1000)
-            pygame.sprite.spritecollide(LevelLoader.ordered_level_sprites[2], bullet_group, True, pygame.sprite.collide_mask)
+            pygame.sprite.spritecollide(LevelLoader.ordered_level_sprites[2], bullet_group, True,
+                                        pygame.sprite.collide_mask)
 
             # Отрисовка
             camera_group.custom_draw(centerfrom=player)
@@ -266,6 +340,24 @@ class Game:
             pygame.display.update()
 
 
+def log_handler(exctype, value, tb):
+    """
+    Custom exception handler.
+    All critical errors will be logged with tag [ERROR]
+    """
+    logger.exception(''.join(traceback.format_exception(exctype, value, tb)))
+
+
 if __name__ == "__main__":
+    # Create folder for log and load log configuration
+    create_dir("logs")
+
+    logging.config.fileConfig(fname=path_to_file("logging.conf"), disable_existing_loggers=False)
+    if release:
+        logging.disable(level=logging.WARNING)
+    sys.excepthook = log_handler
+
+    app = Qt.QApplication([])
     main_window = Game(1280, 720)
     main_window.run()
+    app.exec()

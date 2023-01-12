@@ -1,13 +1,17 @@
 import pygame
-import os.path
+
 from pytmx.util_pygame import load_pygame
 from assets.sprites.sprite import Tile, VectorShadow
+from assets.scripts.path_module import path_to_asset
 
 
 class LevelLoader:
-    level1 = os.path.join('assets', 'maps', 'Map.tmx')
-    level2 = os.path.join('assets', 'maps', 'Map2.tmx')
-    level3 = os.path.join('assets', 'maps', 'NONE.tmx')
+
+    levels = [
+        ["LEVEL 1", "First level", "12.01.2023", "Map.tmx"],
+        ["LEVEL 2", "Second level", "12.01.2023", "NONE.tmx"],
+        ["LEVEL 3", "Third level", "12.01.2023", "NONE.tmx"],
+    ]
 
     levels = {
         1: {
@@ -54,19 +58,18 @@ class LevelLoader:
         }
     }
 
-    # TILE_WIDTH = TILE_HEIGHT = 32
-    # LEVEL_SIZE = (TILE_WIDTH * 95, TILE_HEIGHT * 95)  # ТРЕБУЕТСЯ ДОРАБОТКА. ВЕРНО ТОЛЬКО НА 1 УРОВНЕ
-    # SUN_POSITION = pygame.math.Vector2(-7000, -5000)
-
     ordered_level_sprites = list()  # Спрайты по слоям
     collision_rects = list()  # Коллизия для игрока
     whole_map = None  # Идёт на рендер (1 спрайт на всю карту)
 
     @classmethod
-    def load(cls, level=1):
-        """Вызывать только с инициализованным pygame.display"""
+    def load(cls, level: str):
+        """
+            Вызывать только с инициализованным pygame.display
+            @param level имя файла с картой
+        """
         # Создаём словарь с tile'ами разных слоёв
-        tmx_data = load_pygame(getattr(cls, 'level' + str(level)))
+        tmx_data = load_pygame(path_to_asset("maps", level))
 
         tiles = dict()
         border_tiles = list()
@@ -92,7 +95,7 @@ class LevelLoader:
 
                     tiles[layerIndex].append(tile)
             else:  # Слой с объектами
-                pass # NotImplemented, игнорированы
+                pass  # NotImplemented, игнорированы
 
         # Создаём список со спрайтами слоёв
         all_map_sprites = list()
@@ -129,6 +132,5 @@ class LevelLoader:
         cls.collision_rects = border_tiles
         cls.whole_map = whole_sprite
         cls.ore_dict = ore_dict
-        return cls.levels[level]['BASE_LOCATION']
 
-    
+        return cls.levels[level]['BASE_LOCATION']
