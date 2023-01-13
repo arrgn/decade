@@ -16,7 +16,6 @@ class LevelLoader:
             'DATE': '12.01.2023',
             'FILE_NAME': "Map.tmx",
 
-            'BASE_LOCATION': pygame.Rect(1312, 2560, 64, 64),
             'WAVES': {
                 1: 5,
                 2: 10,
@@ -38,7 +37,6 @@ class LevelLoader:
             'DATE': '12.01.2023',
             'FILE_NAME': "Map2.tmx",
 
-            'BASE_LOCATION': pygame.Rect(1312, 2560, 64, 64),
             'WAVES': {
 
             }
@@ -53,7 +51,6 @@ class LevelLoader:
             'DATE': '12.01.2023',
             'FILE_NAME': "Map3.tmx",
 
-            'BASE_LOCATION': pygame.Rect(1312, 2560, 64, 64),
             'WAVES': {
 
             }
@@ -100,8 +97,32 @@ class LevelLoader:
                                             32, 32))
 
                     tiles[layerIndex].append(tile)
-            else:  # Слой с объектами
-                pass  # NotImplemented, игнорированы
+
+        unsorted_waypoints = dict()
+        waypoints = list()
+        basecoords = None
+        spawnrect = None
+
+        waypoint_names = tuple(map(str, range(31)))  # Support up to 30 waypoints.
+        for obj in tmx_data.objects:
+            if obj.name in waypoint_names:
+                unsorted_waypoints[len(unsorted_waypoints) + 1] = (obj.x, obj.y)
+            elif obj.name == 'SpawnZone':
+                spawnrect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
+                spawnrect.inflate_ip(-64, -64)
+            elif obj.name == 'Base':
+                baserect = pygame.Rect(obj.x // 32 * 32, obj.y // 32 * 32, 64, 64)
+
+        for key, value in sorted(unsorted_waypoints.items(), key=lambda x: x[0]):
+            waypoints.append(value)
+        waypoints.append(baserect.center)
+
+        del unsorted_waypoints, waypoint_names
+
+        # ДАННЫЕ ТУТ
+        # print(waypoints)
+        # print(baserect)
+        # print(spawnrect)
 
         # Создаём список со спрайтами слоёв
         all_map_sprites = list()
@@ -139,4 +160,4 @@ class LevelLoader:
         cls.whole_map = whole_sprite
         cls.ore_dict = ore_dict
 
-        return cls.levels[level]['BASE_LOCATION']
+        return baserect, waypoints, spawnrect

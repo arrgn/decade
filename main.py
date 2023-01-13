@@ -16,10 +16,12 @@ if __name__ == "__main__":
     create_dir("userdata", "default")
     copy_file(path_to_asset("images", "default.png"), "default")
 
+import random
 from PyQt5 import Qt
 from config import release, music_player
 from assets.scripts.loggers import logger
 from assets.sprites.sprite import *
+from assets.scripts.events import *
 from building import init as BuilderInit
 from button import Button, ButtonGroup
 from level import LevelLoader
@@ -27,6 +29,29 @@ from ui import IngameUI
 from assets.scripts.profile_group import ProfileGroup
 from assets.scripts.fonts import *
 from assets.scripts.scroll_area import ScrollArea
+
+
+class MobGroup(pygame.sprite.Group):
+    def __init__(self, spawn_rect, waypoints, camera_group, *sprites) -> None:
+        super().__init__(*sprites)
+        self.spawn_rect = spawn_rect
+        self.waypoints = waypoints
+        self.camera_group = camera_group
+
+    def start_wave(self, amount, force=False):
+        if not self.sprites() or force:
+            while amount > 0:
+                rand_x = random.randint(self.spawn_rect.x, self.spawn_rect.x + self.spawn_rect.width)
+                rand_y = random.randint(self.spawn_rect.y, self.spawn_rect.y + self.spawn_rect.height)
+
+                en = Enemy((rand_x, rand_y), self, self.camera_group)
+                off = [(w[0] + random.randint(-20, 20), w[1] + random.randint(-20, 20)) for w in self.waypoints]
+
+                en.update_walk(*off)
+
+                amount -= 1
+        else:
+            print('ВОЛНА НЕ ЗАКОНЧЕНА. НЕЛЬЗЯ НАЧАТЬ НОВУЮ')
 
 
 class CameraGroup(pygame.sprite.Group):
@@ -205,10 +230,10 @@ class Game:
     def play_screen(self, map_name):
         # Сбрасываем экран, загружаем карту и создаём персонажа
         self.screen.fill(0)
-        base_pos = LevelLoader.load(map_name)
+        base_rect, waypoints, spawn_rect = LevelLoader.load(map_name)
         base = PlayerBase()
-        base.rect = base.image.get_rect(topleft=base_pos.topleft)
-        BUILDER = BuilderInit((3040, 3040), LevelLoader.ore_dict, base_pos)
+        base.rect = base_rect
+        BUILDER = BuilderInit((3040, 3040), LevelLoader.ore_dict, base_rect)
 
         Bullet.init()
         UI = IngameUI(self.screen.get_size(), map_name)
@@ -223,7 +248,9 @@ class Game:
         # Создаём группу спрайтов, которая будет служить камерой
         camera_group = CameraGroup(LevelLoader.whole_map, base, player_shadow, player, BUILDER.building_sprite)
         bullet_group = pygame.sprite.Group()
-        mob_group = pygame.sprite.Group()
+        mob_group = MobGroup(spawn_rect, waypoints, camera_group)
+
+        mob_group.start_wave(2)
 
         def place_building_if_can():
             # Если здание выбрано к стройке и клик был не на UI
@@ -249,8 +276,9 @@ class Game:
                     pygame.quit()
                     sys.exit()
                 elif event == SAVE_AND_RETURN:
-                    print(event.action)
                     run = False
+                    del base
+                    PlayerBase.instance = None
                     break
                 elif event.type == pygame.MOUSEWHEEL:
                     if camera_group.projection:
@@ -331,8 +359,15 @@ class Game:
 
             # Двигаем все выпущенные пули и проверяем коллизию
             bullet_group.update(dt / 1000)
+            mob_group.update(dt)
             pygame.sprite.spritecollide(LevelLoader.ordered_level_sprites[2], bullet_group, True,
                                         pygame.sprite.collide_mask)
+
+            
+            collision = pygame.sprite.groupcollide(bullet_group, mob_group, True, False)
+            if collision:
+                enemy = tuple(collision.values())[0][0]
+                enemy.take_damage(3)
 
             # Отрисовка
             camera_group.custom_draw(centerfrom=player)

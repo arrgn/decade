@@ -5,6 +5,7 @@ import pygame
 import time
 from os.path import join
 from dataclasses import dataclass
+from assets.scripts.path_module import path_to_asset
 from pygame.sprite import Sprite, Group
 
 TILE_WIDTH = TILE_HEIGHT = 32
@@ -80,18 +81,18 @@ class Harvester(Structure):
 
 class PlayerBase(Structure):
     """Singleton"""
-    __instance = None
+    instance = None
 
     def __init__(self, *groups) -> PlayerBase:
-        if not self.__class__.__instance:
+        if not self.__class__.instance:
             surf = pygame.Surface((64, 64)).convert()
             surf.blit(pygame.image.load(join('assets', 'maps', '2x2Buildings.png')), (0, 0), (448, 0, 64, 64))
             super().__init__("PlayerBase", 'Misc', surf, 2000)
             self.resources = dict.fromkeys(('Coal', 'Copper', 'Hematite', 'Titan', 'Emerald'), 0)
             self.UI = None
-            self.__class__.__instance = self
+            self.__class__.instance = self
         else:
-            return self.__class__.__instance
+            return self.__class__.instance
 
     def transfer_resource(self, resource, amount):
         self.resources[resource] += amount
@@ -99,9 +100,9 @@ class PlayerBase(Structure):
 
     @classmethod
     def getInstance(cls):
-        if not cls.__instance:
-            cls.__instance = cls()
-        return cls.__instance
+        if not cls.instance:
+            cls.instance = cls()
+        return cls.instance
 
 
 class Wall(Structure):
@@ -264,8 +265,77 @@ class Player(Sprite):
 
 
 class Enemy(Sprite):
-    def __init__(self, *groups) -> None:
+    sprite_path = path_to_asset('sprites', 'Enemy.png')
+    rendered_image = None
+
+    speed = 300
+    turning_speed = 4
+    max_health = 10
+    display_layer = 3
+
+    def __init__(self, position, *groups) -> None:
         super().__init__(*groups)
+        if not self.rendered_image:
+            self.__class__.rendered_image = pygame.transform.scale(pygame.image.load(self.sprite_path), (64, 64)).convert_alpha()
+        self.image = self.rendered_image.copy()
+        self.rect = self.image.get_rect(center=position)
+        self.health = self.max_health
+        self.rotation = pygame.math.Vector2(0, -1)
+
+        self.walk_schedule = list()
+        self.movement_direction = None
+        self.destination = None
+        self.is_moving = False
+    
+    def take_damage(self, amount):
+        self.health -= amount
+        if self.health <= 0:
+            print('Dead')
+            self.kill()
+
+    def update(self, dt):
+        if self.is_moving:
+            self.rotation = self.rotation.lerp(self.movement_direction, min(self.turning_speed * dt / 1000, 1))
+            angle = -math.degrees(math.atan2(self.rotation.x, -self.rotation.y))
+            self.image = pygame.transform.rotate(self.rendered_image, angle)
+
+            newPos = self.rect.center + self.movement_direction * self.speed * dt / 1000
+            self.movement_direction = (self.destination - self.rect.center)
+            self.movement_direction.scale_to_length(1)
+
+            self.rect.center = newPos
+            if (self.destination - self.rect.center).magnitude() < 5:
+                self.rect.center = self.destination
+                if self.walk_schedule:
+                    next_destination = self.walk_schedule.pop(0)
+                    self.move_to(next_destination, force=True)
+                else:
+                    self.is_moving = False
+
+    def move_to(self, coords, force=False):
+        if not self.is_moving or force:
+            destination = pygame.math.Vector2(coords)
+            movement_direction = destination - pygame.math.Vector2(self.rect.center)
+            print(movement_direction)
+            movement_direction.scale_to_length(1)
+
+            self.is_moving = True
+            self.movement_direction = movement_direction
+            self.destination = destination
+
+    def update_walk(self, *coords):
+        self.walk_schedule.extend(coords[1:])
+        self.move_to(coords[0])
+
+
+
+
+
+
+
+
+
+
 
 
 class Tile(Sprite):
