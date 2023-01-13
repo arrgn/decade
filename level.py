@@ -15,6 +15,7 @@ class LevelLoader:
             'DESCRIPTION': 'First level',
             'DATE': '12.01.2023',
             'FILE_NAME': "Map.tmx",
+            'TIME_BREAKS': 90,
 
             'WAVES': {
                 1: 5,
@@ -33,12 +34,14 @@ class LevelLoader:
             'TILE_HEIGHT': 32,
             'LEVEL_SIZE': (50 * 32, 50 * 32),
             'SUN_POSITION': pygame.math.Vector2(-7000, -5000),
-            'DESCRIPTION': 'Second level',
+            'DESCRIPTION': 'Level with low amount of waves and short timer. Good for testing/debugging',
             'DATE': '12.01.2023',
             'FILE_NAME': "Map2.tmx",
+            'TIME_BREAKS': 2,
 
             'WAVES': {
-
+                1: 2,
+                2: 3,
             }
         },
 
@@ -50,9 +53,12 @@ class LevelLoader:
             'DESCRIPTION': 'Third level',
             'DATE': '12.01.2023',
             'FILE_NAME': "Map3.tmx",
+            'TIME_BREAKS': 10,
 
             'WAVES': {
-
+                1: 2,
+                2: 4,
+                3: 8
             }
         }
     }
@@ -155,9 +161,12 @@ class LevelLoader:
         whole_sprite.rect = whole_level.get_rect(topleft=(0, 0))
         whole_sprite.display_layer = 1
 
+        wave_info = cls.levels[level]['WAVES']
+        timer_break = cls.levels[level]['TIME_BREAKS']
+
         cls.ordered_level_sprites = all_map_sprites
         cls.collision_rects = border_tiles
         cls.whole_map = whole_sprite
         cls.ore_dict = ore_dict
 
-        return baserect, waypoints, spawnrect
+        return baserect, waypoints, spawnrect, wave_info, timer_break

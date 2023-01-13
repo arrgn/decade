@@ -5,6 +5,7 @@ import pygame
 import time
 from os.path import join
 from dataclasses import dataclass
+from assets.scripts.events import MOB_KILLED
 from assets.scripts.path_module import path_to_asset
 from pygame.sprite import Sprite, Group
 
@@ -124,14 +125,6 @@ class Conveyor(Structure):
         print(f'Received: {resource=}, {self.holding_item[1]}')
 
     def update(self, dt, conveyer_dict, base_pos) -> None:
-        # if len(conveyer_dict) >= 2:
-        #     conv = conveyer_dict[tuple(conveyer_dict.keys())[1]]
-        #     print(conv.rect, conv.looking_at)
-        # print(len(conveyer_dict))
-        # if self.holding_item:
-        #     conveyor = conveyer_dict.get(tuple(self.looking_at))
-        #     print(conveyor)
-
         if self.holding_item and self.looking_at:
             coords = tuple(self.looking_at)
             if coords in conveyer_dict:
@@ -290,7 +283,7 @@ class Enemy(Sprite):
     def take_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
-            print('Dead')
+            pygame.event.post(MOB_KILLED)
             self.kill()
 
     def update(self, dt):

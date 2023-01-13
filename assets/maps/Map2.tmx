@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="1">
+<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="9">
  <tileset firstgid="1" source="Tileset.tsx"/>
  <layer id="1" name="Карта" width="50" height="50">
   <data encoding="csv">
@@ -163,4 +163,25 @@
 53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53
 </data>
  </layer>
+ <objectgroup id="4" name="Позиции">
+  <object id="1" name="SpawnZone" x="260" y="196" width="381.333" height="220"/>
+  <object id="2" name="Base" x="816" y="909.333">
+   <point/>
+  </object>
+  <object id="3" name="1" x="760" y="350.667">
+   <point/>
+  </object>
+  <object id="4" name="2" x="1218.67" y="510.667">
+   <point/>
+  </object>
+  <object id="6" name="3" x="1172" y="677.333">
+   <point/>
+  </object>
+  <object id="7" name="4" x="725.333" y="557.333">
+   <point/>
+  </object>
+  <object id="8" name="5" x="584" y="722.667">
+   <point/>
+  </object>
+ </objectgroup>
 </map>

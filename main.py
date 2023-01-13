@@ -35,6 +35,8 @@ from assets.scripts.scroll_area import ScrollArea
 
 
 class MobGroup(pygame.sprite.Group):
+    total_killed = 0
+
     def __init__(self, spawn_rect, waypoints, camera_group, *sprites) -> None:
         super().__init__(*sprites)
         self.spawn_rect = spawn_rect
@@ -157,13 +159,10 @@ class Game:
                             self.profile_group.check_click(event.pos)
 
                         if clicked_button is play_button:
-                            print('Нажата кнопка ИГРАТЬ')
                             self.map_management(lambda: LevelLoader.levels)
                         elif clicked_button is options_button:
-                            print('Нажата кнопка НАСТРОЙКИ')
                             self.settings_screen()
                         elif clicked_button is exit_button:
-                            print('Нажата кнопка ВЫХОД')
                             pygame.quit()
                             sys.exit()
 
@@ -253,7 +252,7 @@ class Game:
 
         # Поля ввода
         sound_volume = TextInputVisualizer(font_object=font, antialias=True)
-        sound_volume.value = "100"
+        sound_volume.value = str(int(getattr(music_player, 'mult', 1) * 100))
 
         run = True
         while run:
@@ -303,15 +302,15 @@ class Game:
     def play_screen(self, map_name):
         # Сбрасываем экран, загружаем карту и создаём персонажа
         self.screen.fill(0)
-        base_rect, waypoints, spawn_rect = LevelLoader.load(map_name)
-        base = PlayerBase()
+        base_rect, waypoints, spawn_rect, wave_info, timer_break = LevelLoader.load(map_name)
+        base = PlayerBase.getInstance()
         base.rect = base_rect
         BUILDER = BuilderInit((3040, 3040), LevelLoader.ore_dict, base_rect)
 
         Bullet.init()
-        UI = IngameUI(self.screen.get_size(), map_name)
+        UI = IngameUI(self.screen.get_size(), map_name, wave_info, timer_break)
         UI.initUI()
-        UI.start_timer(90)
+        UI.start_timer(timer_break)
 
         setattr(base, 'UI', UI)
 
@@ -322,8 +321,6 @@ class Game:
         camera_group = CameraGroup(LevelLoader.whole_map, base, player_shadow, player, BUILDER.building_sprite)
         bullet_group = pygame.sprite.Group()
         mob_group = MobGroup(spawn_rect, waypoints, camera_group)
-
-        mob_group.start_wave(2)
 
         def place_building_if_can():
             # Если здание выбрано к стройке и клик был не на UI
@@ -349,10 +346,17 @@ class Game:
                     pygame.quit()
                     sys.exit()
                 elif event == SAVE_AND_RETURN:
+                    print(event)
+                    if hasattr(event, 'max_score'):
+                        print("YES")
+                        print(event.max_score)
+
                     run = False
-                    del base
+                    base = None
+                    UI = None
+                    BUILDER = None
                     PlayerBase.instance = None
-                    break
+                    return
                 elif event.type == pygame.MOUSEWHEEL:
                     if camera_group.projection:
                         if event.y > 0:
@@ -420,6 +424,14 @@ class Game:
                             camera_group.project_building(building)
                         else:
                             BUILDER.delete_build_on_click(event.pos + camera_group.offset)
+                elif event == GAME_ENDED:
+                    return UI.end_game(mob_group.total_killed)
+                elif event == WAVE_CLEARED:
+                    pass
+                elif event == WAVE_STARTS:
+                    mob_group.start_wave(event.amount)
+                elif event == MOB_KILLED:
+                    mob_group.total_killed += 1
 
                 UI.manager.process_events(event)
 
@@ -435,8 +447,12 @@ class Game:
             mob_group.update(dt)
             pygame.sprite.spritecollide(LevelLoader.ordered_level_sprites[2], bullet_group, True,
                                         pygame.sprite.collide_mask)
-
             
+            if base:
+                collision = pygame.sprite.spritecollide(base, mob_group, False)
+                if collision:
+                    pygame.event.post(GAME_ENDED)
+                
             collision = pygame.sprite.groupcollide(bullet_group, mob_group, True, False)
             if collision:
                 enemy = tuple(collision.values())[0][0]
@@ -444,7 +460,7 @@ class Game:
 
             # Отрисовка
             camera_group.custom_draw(centerfrom=player)
-            UI.update_UI(dt)
+            UI.update_UI(dt, len(mob_group.sprites()))  # OPTIMIZE
             pygame.display.update()
 
 

@@ -79,7 +79,8 @@ class ScrollArea:
 
         for button in self.buttons:
             if clicked_button is button:
-                self.send_data(button.data)
+                score = self.send_data(button.data)
+                print('THE SCORE IS:', score)
                 break
         else:
             return True

@@ -114,6 +114,7 @@ class MusicPlayer:
             @param mult коэффициент громкости
         """
         pg.mixer.music.set_volume(self.bg_volume * mult)
+        self.mult = mult
         for k, sound in self.sounds.items():
             sound.change_config(mult=mult)
 
