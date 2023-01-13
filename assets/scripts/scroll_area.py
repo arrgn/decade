@@ -37,7 +37,6 @@ class ScrollArea:
         self.buttons.clear()
         self.resize_bg(len(maps))
         i = 0
-        print(maps)
         for k, v in maps.items():
             # Готовим пространство
             rect = pg.Rect((self.margin, self.margin + self.height * i,
