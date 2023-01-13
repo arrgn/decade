@@ -159,6 +159,9 @@ class IngameUI:
             setattr(self, f'icon{i + 1}', icon)
             setattr(self, f'{name}Text', text)
 
+        self.building_panel.hide()
+        self.viewport_panel.hide()
+
     def update_resource_amounts(self, resource_dict):
         for key, value in resource_dict.items():
             text = getattr(self, f'{key}Text')
@@ -175,7 +178,7 @@ class IngameUI:
 
     def end_game(self, total_killed):
         screen = pygame.display.get_surface()
-        screen.fill((192, 192, 192))
+        # screen.fill((192, 192, 192))
         temp_clock = pygame.time.Clock()
 
         final_rect = pygame.Rect(0, 0, 300, 200)
@@ -192,7 +195,7 @@ class IngameUI:
                                                         parent_element=final_panel)
 
         mob_label = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(0, 40, 300, 40),
-                                                     text=f"Killed: {total_killed}",
+                                                     text=f"Killed: {total_killed}/{sum(self.waves.values())}",
                                                      manager=self.manager,
                                                      container=final_panel,
                                                      parent_element=final_panel)
@@ -224,8 +227,6 @@ class IngameUI:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit(0)
-                elif event.type == pygame.KEYDOWN:
-                    pass
                 elif event.type == pygame_gui.UI_BUTTON_PRESSED:
                     final_label.hide()
                     pygame.event.post(SAVE_AND_RETURN)

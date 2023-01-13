@@ -102,7 +102,7 @@ class Game:
 
     def __init__(self, width, height) -> None:
         pygame.init()
-        pygame.display.set_caption('Untitled')
+        pygame.display.set_caption('Decade')
         self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
         self.profile_group = ProfileGroup()
@@ -131,8 +131,8 @@ class Game:
         bg = pygame.transform.scale(unscaled_bg, pygame.display.get_window_size())
 
         # Отрисовываем тексты
-        game_title = big_font.render('Untitled game', True, '#E1FAF9')
-        version_title = small_font.render('Version Prealpha 0.1', True, '#E1FAF9')
+        game_title = big_font.render('Decade', True, '#E1FAF9')
+        version_title = small_font.render('Version Alpha 0.1', True, '#E1FAF9')
 
         # Создаём кнопки и добавляем их в группу
         play_button = Button((50, 200, 200, 50), 'Play', font, 'White', '#0496FF', '#006BA6')
@@ -183,7 +183,7 @@ class Game:
         bg = pygame.transform.scale(unscaled_bg, pygame.display.get_window_size())
 
         # Отрисовываем тексты
-        game_title = big_font.render('Untitled game', True, '#E1FAF9')
+        game_title = big_font.render('Decade', True, '#E1FAF9')
         version_title = small_font.render('Version Prealpha 0.1', True, '#E1FAF9')
         hint = small_font.render("Use Key-Up/Key-Down to scroll", True, "#E1FAF9")
 
@@ -241,7 +241,7 @@ class Game:
         bg = pygame.transform.scale(unscaled_bg, pygame.display.get_window_size())
 
         # Отрисовываем тексты
-        game_title = big_font.render('Untitled game', True, '#E1FAF9')
+        game_title = big_font.render('Decade', True, '#E1FAF9')
         version_title = small_font.render('Version Prealpha 0.1', True, '#E1FAF9')
         volume = font.render("Volume", True, "#E1FAF9")
 

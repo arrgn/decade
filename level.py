@@ -7,15 +7,15 @@ from assets.scripts.path_module import path_to_asset
 
 class LevelLoader:
     levels = {
-        "LEVEL 1": {
+        "The Cave of the Devotee": {
             'TILE_WIDTH': 32,
             'TILE_HEIGHT': 32,
             'LEVEL_SIZE': (95 * 32, 95 * 32),
             'SUN_POSITION': pygame.math.Vector2(-7000, -5000),
-            'DESCRIPTION': 'First level',
+            'DESCRIPTION': 'First level that was ever created. Map for a long run',
             'DATE': '12.01.2023',
             'FILE_NAME': "Map.tmx",
-            'TIME_BREAKS': 90,
+            'TIME_BREAKS': 5,
 
             'WAVES': {
                 1: 5,
@@ -29,13 +29,13 @@ class LevelLoader:
             }
         },
 
-        "LEVEL 2": {
+        "Testing field": {
             'TILE_WIDTH': 32,
             'TILE_HEIGHT': 32,
             'LEVEL_SIZE': (50 * 32, 50 * 32),
             'SUN_POSITION': pygame.math.Vector2(-7000, -5000),
             'DESCRIPTION': 'Level with low amount of waves and short timer. Good for testing/debugging',
-            'DATE': '12.01.2023',
+            'DATE': '13.01.2023',
             'FILE_NAME': "Map2.tmx",
             'TIME_BREAKS': 2,
 
@@ -45,20 +45,20 @@ class LevelLoader:
             }
         },
 
-        "LEVEL 3": {
-            'TILE_WIDTH': 32,
-            'TILE_HEIGHT': 32,
-            'LEVEL_SIZE': (95 * 32, 95 * 32),
-            'SUN_POSITION': pygame.math.Vector2(-7000, -5000),
-            'DESCRIPTION': 'Third level',
-            'DATE': '12.01.2023',
-            'FILE_NAME': "Map3.tmx",
-            'TIME_BREAKS': 10,
+        "The pit": {
+            "TILE_WIDTH": 32,
+            "TILE_HEIGHT": 32,
+            "LEVEL_SIZE": (70 * 32, 65 * 32),
+            "SUN_POSITION": pygame.math.Vector2(10000, -7000),
+            "DESCRIPTION": "The last of them all",
+            "DATE": "13.01.2023",
+            "FILE_NAME": "CustomMap.tmx",
+            "TIME_BREAKS": 20,
 
-            'WAVES': {
-                1: 2,
-                2: 4,
-                3: 8
+            "WAVES" : {
+                1: 10,
+                2: 10,
+                3: 12
             }
         }
     }
