@@ -1,7 +1,7 @@
 from PyQt5 import Qt, uic
 from PyQt5.QtWidgets import QDialog, QPushButton, QLineEdit, QLabel, QComboBox
 from assets.scripts.path_module import path_to_file
-from config import user
+from assets.scripts.config import user
 
 
 class AuthWindow(QDialog):

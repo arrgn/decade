@@ -1,5 +1,5 @@
 import pygame
-from assets.sprites.sprite import Harvester, Wall, Conveyor
+from assets.scripts.sprite import Harvester, Wall, Conveyor, Turret
 import copy
 import os.path
 
@@ -42,6 +42,7 @@ def init(level_size, ore_dict, base_pos):
     spriteSheetData[0][5] = ('Hematite wall', 'Wall', 300)
     spriteSheetData[0][6] = ('Emerald wall', 'Wall', 500)
     spriteSheetData[1][0] = ('Conveyor', 'Conveyor', 50)
+    spriteSheetData[1][1] = ('Emerald turret', 'Turret', 100)
 
     # Загружаем spritesheet с 3x3 зданиями
     pass
@@ -61,6 +62,7 @@ def init(level_size, ore_dict, base_pos):
         # Группы с апдейтами
         harvester_group = StructureGroup()
         conveyers_group = StructureGroup()
+        turret_group = StructureGroup()
 
         conveyors_to_looks = dict()  # Used by conveyors in self with "rects_to_conveyors"
         rects_to_conveyors = dict()  # Used by harvesters
@@ -78,9 +80,10 @@ def init(level_size, ore_dict, base_pos):
             cls.build_registry.append(build)
         
         @classmethod
-        def update(cls, dt):
+        def update(cls, dt, mobs=None):
             cls.harvester_group.update(dt / 1000)
             cls.conveyers_group.update(dt / 1000, cls.rects_to_conveyors, base_pos)
+            cls.turret_group.update(dt, mobs)
 
         @classmethod
         def lock(cls):
@@ -110,6 +113,8 @@ def init(level_size, ore_dict, base_pos):
                     if is_conveyor:
                         for harvester in cls.harvester_group.sprites:
                             harvester.update_conveyor_info(cls.rects_to_conveyors)
+                    elif build.type == 'Turret':
+                        cls.turret_group.remove(build)
 
                     if build in cls.harvester_group:
                         cls.harvester_group.remove(build)
@@ -170,6 +175,8 @@ def init(level_size, ore_dict, base_pos):
 
                 for sprite in cls.harvester_group.sprites:
                     sprite.update_conveyor_info(cls.rects_to_conveyors)
+            elif building.type == 'Turret':
+                cls.turret_group.add(building)
 
             cls.building_sprite.image = cls.buildings_surface
             cls.built_buildings.append(building)
@@ -192,6 +199,8 @@ def init(level_size, ore_dict, base_pos):
                     structure = Wall(name, surface, health)
                 elif building_type == 'Conveyor':
                     structure = Conveyor(name, surface, health)
+                elif building_type == 'Turret':
+                    structure = Turret(name, surface, health)
 
                 BuildManager.append(structure)
     

@@ -207,6 +207,19 @@
         }
     },
 
+    "#Emerald_turret":
+    {
+        "images":
+        {
+            "normal_image":
+            {
+                "package": "assets.maps",
+                "resource": "2x2Buildings.png",
+                "sub_surface_rect": "128,64,64,64"
+            }
+        }    
+    },
+
     "#Copper_drill":
     {
         "images":

@@ -65,7 +65,8 @@ class IngameUI:
         Placeables = {
             'Harvester': ['Copper drill', 'Hematite drill', 'Titan drill'],
             'Wall': ['Copper wall', 'Titan wall', 'Hematite wall', 'Emerald wall'],
-            'Conveyor': ['Conveyor']
+            'Conveyor': ['Conveyor'],
+            'Turret': ['Emerald turret']
         }
 
         # Создаём кнопки категорий и контейнеры для них
@@ -90,6 +91,7 @@ class IngameUI:
         for build_type, buildings in Placeables.items():
             container = getattr(self, f'{build_type.lower()}_container')
             for i, build in enumerate(buildings):
+                print(f'#{build.replace(" ", "_")}')
                 y, x = divmod(i, 4)
                 button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(x * 50, y * 50, 50, 50),
                                                       text=build,
@@ -114,10 +116,10 @@ class IngameUI:
                                                            text='Continue',
                                                            **pause_kwargs)
         self.return_button = pygame_gui.elements.UIButton(pygame.Rect(-4, 80, 161, 40),
-                                                          text='Save and return',
+                                                          text='Return',
                                                           **pause_kwargs)
         self.quit_button = pygame_gui.elements.UIButton(pygame.Rect(-4, 120, 161, 40),
-                                                        text='Save and quit',
+                                                        text='Quit',
                                                         **pause_kwargs)
 
         # НАДПИСИ НА ЭКРАНЕ. ПОДСКАЗКИ

@@ -1,8 +1,8 @@
 import pygame
 
 from assets.scripts.path_module import path_to_asset, path_to_userdata
-from config import user
-from button import Button, ButtonImage, ButtonGroup
+from assets.scripts.config import user
+from assets.scripts.button import Button, ButtonImage, ButtonGroup
 from assets.scripts.auth_window import AuthWindow
 from assets.scripts.profile_window import ProfileWindow
 

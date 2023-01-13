@@ -1,7 +1,7 @@
 import pygame
 
 from pytmx.util_pygame import load_pygame
-from assets.sprites.sprite import Tile, VectorShadow
+from assets.scripts.sprite import Tile, VectorShadow
 from assets.scripts.path_module import path_to_asset
 
 

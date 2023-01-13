@@ -21,17 +21,25 @@ if __name__ == "__main__":
 import random
 from PyQt5 import Qt
 from pygame_textinput import TextInputVisualizer
-from config import release, music_player
+from assets.scripts.config import release, music_player
 from assets.scripts.loggers import logger
-from assets.sprites.sprite import *
+from assets.scripts.sprite import *
 from assets.scripts.events import *
-from building import init as BuilderInit
-from button import Button, ButtonGroup
-from level import LevelLoader
-from ui import IngameUI
+from assets.scripts.building import init as BuilderInit
+from assets.scripts.button import Button, ButtonGroup
+from assets.scripts.level import LevelLoader
+from assets.scripts.ui import IngameUI
 from assets.scripts.profile_group import ProfileGroup
 from assets.scripts.fonts import *
 from assets.scripts.scroll_area import ScrollArea
+
+# class TurretGroup(pygame.sprite.Group):
+#     def __init__(self, *groups):
+#         super().__init__(*groups)
+
+#     def update(self, dt, mobs) -> None:
+#         pass
+
 
 
 class MobGroup(pygame.sprite.Group):
@@ -308,6 +316,7 @@ class Game:
         BUILDER = BuilderInit((3040, 3040), LevelLoader.ore_dict, base_rect)
 
         Bullet.init()
+
         UI = IngameUI(self.screen.get_size(), map_name, wave_info, timer_break)
         UI.initUI()
         UI.start_timer(timer_break)
@@ -321,6 +330,7 @@ class Game:
         camera_group = CameraGroup(LevelLoader.whole_map, base, player_shadow, player, BUILDER.building_sprite)
         bullet_group = pygame.sprite.Group()
         mob_group = MobGroup(spawn_rect, waypoints, camera_group)
+        Turret.set_groups(bullet_group, camera_group)
 
         def place_building_if_can():
             # Если здание выбрано к стройке и клик был не на UI
@@ -346,11 +356,6 @@ class Game:
                     pygame.quit()
                     sys.exit()
                 elif event == SAVE_AND_RETURN:
-                    print(event)
-                    if hasattr(event, 'max_score'):
-                        print("YES")
-                        print(event.max_score)
-
                     run = False
                     base = None
                     UI = None
@@ -425,7 +430,9 @@ class Game:
                         else:
                             BUILDER.delete_build_on_click(event.pos + camera_group.offset)
                 elif event == GAME_ENDED:
-                    return UI.end_game(mob_group.total_killed)
+                    score = UI.end_game(mob_group.total_killed)
+                    print('DA SCORE IS', score)
+                    return 
                 elif event == WAVE_CLEARED:
                     pass
                 elif event == WAVE_STARTS:
@@ -440,7 +447,7 @@ class Game:
             player.update(dt)
             player_shadow.update()
 
-            BUILDER.update(dt)
+            BUILDER.update(dt, mob_group)
 
             # Двигаем все выпущенные пули и проверяем коллизию
             bullet_group.update(dt / 1000)

@@ -142,10 +142,14 @@ class Bullet(Sprite):
     speed = 800
     display_layer = 5
 
-    def __init__(self, pos, *groups) -> None:
+    def __init__(self, pos, direction=None, *groups) -> None:
         super().__init__(*groups)
-        self.direction = pygame.math.Vector2(
-            pygame.mouse.get_pos()) - (self.half_w, self.half_h)
+        if not direction:
+            self.direction = pygame.math.Vector2(
+                pygame.mouse.get_pos()) - (self.half_w, self.half_h)
+        else:
+            self.direction = direction
+
         self.direction.scale_to_length(1)
         rotate_angle = math.degrees(math.atan2(
             self.direction.x, self.direction.y))
@@ -255,6 +259,45 @@ class Player(Sprite):
             self.rect.center = newPos
         else:
             self.is_moving = False
+
+
+class Turret(Structure):
+    distance = 500
+    firerate = 5  # Bullets per second
+
+    def __init__(self, name, image, health, *groups) -> None:
+        super().__init__(name, 'Turret', image, health, *groups)
+        self.idle = 0
+
+    def find_closest_enemy(self, mobs):
+        closest_mob = None
+        distance_to_him = 99999
+        if mobs:
+            for mob in mobs:
+                mobPos = pygame.math.Vector2(mob.rect.center)
+                turretPos = pygame.math.Vector2(self.rect.center)
+                distance = (mobPos - turretPos).magnitude()
+
+                if distance < self.distance:
+                    closest_mob = mobPos
+                    distance_to_him = distance
+
+        return closest_mob, distance_to_him
+
+    @classmethod
+    def set_groups(cls, bg, cg):
+        cls.bullet_group = bg
+        cls.camera_group = cg
+
+    def update(self, dt, mobs):
+        mob_pos, distance = self.find_closest_enemy(mobs)
+        self.idle += dt / 1000
+        if mob_pos:  # If it was found
+            shooting_vector = mob_pos - self.rect.center
+
+            if self.idle > 1 / self.firerate:
+                Bullet(self.rect.center, shooting_vector, self.bullet_group, self.camera_group)
+                self.idle = 0
 
 
 class Enemy(Sprite):

@@ -1,7 +1,7 @@
 import pygame as pg
 from typing import Union, Callable, Any
 from assets.scripts.fonts import *
-from button import SurfaceButton, ButtonGroup
+from assets.scripts.button import SurfaceButton, ButtonGroup
 
 
 class ScrollArea:
@@ -79,8 +79,7 @@ class ScrollArea:
 
         for button in self.buttons:
             if clicked_button is button:
-                score = self.send_data(button.data)
-                print('THE SCORE IS:', score)
+                self.send_data(button.data)
                 break
         else:
             return True

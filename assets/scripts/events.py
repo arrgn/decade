@@ -5,5 +5,5 @@ import pygame
 SAVE_AND_RETURN = pygame.event.Event(pygame.USEREVENT, action="save and return")
 WAVE_CLEARED = pygame.event.Event(pygame.USEREVENT, action="wave cleared")
 WAVE_STARTS = pygame.event.Event(pygame.USEREVENT, action="wave starts")
-GAME_ENDED = pygame.event.Event(pygame.USEREVENT, action='game ended')
+GAME_ENDED = pygame.event.Event(pygame.USEREVENT, action='game ended', score=0)
 MOB_KILLED = pygame.event.Event(pygame.USEREVENT, action='mob killed')
