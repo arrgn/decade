@@ -69,9 +69,10 @@ class Harvester(Structure):
         if self.resource_timer > 2 and self.holding < 10:
             self.resource_timer = 0
             self.holding = min(10, self.holding + self.harvest_rate)
-            # print(self.resource, self.holding)
+            print(self.resource, self.holding)
 
         if self.holding and self.nearby_conveyors:
+            print('checking')
             for conv in self.nearby_conveyors:
                 if not conv.holding_item or conv.holding_item[0] == self.resource:
                     conv.transfer_resource(self.resource, self.holding)
@@ -263,7 +264,7 @@ class Player(Sprite):
 
 class Turret(Structure):
     distance = 500
-    firerate = 5  # Bullets per second
+    firerate = 4  # Bullets per second
 
     def __init__(self, name, image, health, *groups) -> None:
         super().__init__(name, 'Turret', image, health, *groups)

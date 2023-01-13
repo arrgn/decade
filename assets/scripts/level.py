@@ -18,14 +18,16 @@ class LevelLoader:
             'TIME_BREAKS': 5,
 
             'WAVES': {
-                1: 5,
-                2: 10,
-                3: 13,
-                4: 15,
-                5: 18,
-                6: 20,
-                7: 21,
-                8: 40
+                1: 15,
+                2: 20,
+                3: 26,
+                4: 30,
+                5: 34,
+                6: 46,
+                7: 51,
+                8: 55,
+                9: 60,
+                10: 99
             }
         },
 
@@ -50,10 +52,10 @@ class LevelLoader:
             "TILE_HEIGHT": 32,
             "LEVEL_SIZE": (70 * 32, 65 * 32),
             "SUN_POSITION": pygame.math.Vector2(10000, -7000),
-            "DESCRIPTION": "The last of them all",
+            "DESCRIPTION": "Great for showing how conveyors and buildings work",
             "DATE": "13.01.2023",
-            "FILE_NAME": "CustomMap.tmx",
-            "TIME_BREAKS": 20,
+            "FILE_NAME": "Map3.tmx",
+            "TIME_BREAKS": 200,
 
             "WAVES" : {
                 1: 10,
