@@ -83,7 +83,7 @@ class CameraGroup(pygame.sprite.Group):
             self.remove(self.projection)
             self.projection = None
         cursor_pos = pygame.mouse.get_pos() + self.offset
-        building.rect = building.image.get_rect(topleft=(cursor_pos[0] // 32 * 32, cursor_pos[1] // 32 * 32))
+        building.rect = building.image.get_rect(topleft=(cursor_pos[0] // 64 * 64, cursor_pos[1] // 64 * 64))
         self.projection = building
         self.add(building)
 
@@ -94,7 +94,7 @@ class CameraGroup(pygame.sprite.Group):
         if self.projection:
             # print(self.projection, len(self.sprites()))
             cursor_pos = pygame.mouse.get_pos() + self.offset
-            self.projection.rect.topleft = cursor_pos[0] // 32 * 32, cursor_pos[1] // 32 * 32
+            self.projection.rect.topleft = cursor_pos[0] // 64 * 64 - 32, cursor_pos[1] // 64 * 64
 
     def custom_draw(self, centerfrom):
         self.center_target_camera(centerfrom)
@@ -381,7 +381,7 @@ class Game:
                     elif event.key == pygame.K_b or event.key == pygame.K_TAB:
                         # Открытие/Закрытие UI стройки
                         # UI.building_panel.visible = not UI.building_panel.visible
-                        # UI.viewport_panel.visible = not UI.viewport_panel.visible
+                        # UI.viewport_panel.visible =  UI.viewport_panel.visible
                         if UI.building_panel.visible:
                             UI.building_panel.hide()
                             UI.viewport_panel.hide()
