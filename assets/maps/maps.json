@@ -1,0 +1,71 @@
+{
+  "The Cave of the Devotee": {
+    "TILE_WIDTH": 32,
+    "TILE_HEIGHT": 32,
+    "LEVEL_SIZE": [
+      3040,
+      3040
+    ],
+    "SUN_POSITION": [
+      -7000,
+      -5000
+    ],
+    "DESCRIPTION": "First level that was ever created. Map for a long run",
+    "DATE": "12.01.2023",
+    "FILE_NAME": "Map.tmx",
+    "TIME_BREAKS": 25,
+    "WAVES": {
+      "1": 15,
+      "2": 20,
+      "3": 26,
+      "4": 30,
+      "5": 34,
+      "6": 46,
+      "7": 51,
+      "8": 55,
+      "9": 60,
+      "10": 99
+    }
+  },
+  "Testing field": {
+    "TILE_WIDTH": 32,
+    "TILE_HEIGHT": 32,
+    "LEVEL_SIZE": [
+      1600,
+      1600
+    ],
+    "SUN_POSITION": [
+      -7000,
+      -5000
+    ],
+    "DESCRIPTION": "Level with low amount of waves and short timer. Good for testing/debugging",
+    "DATE": "13.01.2023",
+    "FILE_NAME": "Map2.tmx",
+    "TIME_BREAKS": 2,
+    "WAVES": {
+      "1": 2,
+      "2": 3
+    }
+  },
+  "The pit": {
+    "TILE_WIDTH": 32,
+    "TILE_HEIGHT": 32,
+    "LEVEL_SIZE": [
+      2240,
+      2080
+    ],
+    "SUN_POSITION": [
+      10000,
+      -7000
+    ],
+    "DESCRIPTION": "Great for showing how conveyors and buildings work",
+    "DATE": "13.01.2023",
+    "FILE_NAME": "Map3.tmx",
+    "TIME_BREAKS": 200,
+    "WAVES": {
+      "1": 10,
+      "2": 10,
+      "3": 12
+    }
+  }
+}

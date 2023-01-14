@@ -90,9 +90,9 @@ class User:
             logger.exception("Tracked exception occurred!")
         return False
 
-    def add_map(self, title, description, file):
+    def add_map(self, title, description, map_type):
         try:
-            self.dao.add_map(self.get_user(), title, description, datetime.now(), file)
+            self.dao.add_map(self.get_user(), title, description, datetime.now(), map_type)
             return True
         except DAO.UserDoesntExistError:
             logger.exception("Tracked exception occurred!")
@@ -101,7 +101,16 @@ class User:
     def get_maps(self):
         try:
             res = self.dao.get_maps_by_user(self.get_user())
-            return res
+            out = {}
+            for el in res:
+                out[el[0]] = {
+                    "DESCRIPTION": el[1],
+                    "DATE": el[2],
+                    "SCORE": el[3],
+                }
+            print("!" * 100)
+            print(*res, sep="\n")
+            return out
         except DAO.UserDoesntExistError:
             logger.exception("Tracked exception occurred!")
         return []
@@ -117,6 +126,14 @@ class User:
     def access_map(self, user_to, map_name):
         try:
             self.dao.access_map(self.get_user(), user_to, map_name)
+            return True
+        except (DAO.UserDoesntExistError, DAO.MapNotFoundError):
+            logger.exception("Tracked exception occurred!")
+        return False
+
+    def save_score(self, map_name, score):
+        try:
+            self.dao.save_score(self.get_user(), map_name, score)
             return True
         except (DAO.UserDoesntExistError, DAO.MapNotFoundError):
             logger.exception("Tracked exception occurred!")

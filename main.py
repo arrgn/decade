@@ -4,9 +4,10 @@ import traceback
 
 import pygame.event
 import pygame_gui
+import random
+import json
 
-from assets.scripts.path_module import create_dir, copy_file, path_to_asset, path_to_file
-from assets.scripts.events import SAVE_AND_RETURN
+from assets.scripts.path_module import create_dir, copy_file, path_to_asset, path_to_file, path_to_userdata
 
 if __name__ == "__main__":
     """
@@ -18,10 +19,10 @@ if __name__ == "__main__":
     create_dir("userdata", "default")
     copy_file(path_to_asset("images", "default.png"), "default")
 
-import random
 from PyQt5 import Qt
+from PyQt5.QtWidgets import QFileDialog
 from pygame_textinput import TextInputVisualizer
-from assets.scripts.config import release, music_player
+from assets.scripts.config import release, music_player, user, path_to_maps_config
 from assets.scripts.loggers import logger
 from assets.scripts.sprite import *
 from assets.scripts.events import *
@@ -167,7 +168,7 @@ class Game:
                             self.profile_group.check_click(event.pos)
 
                         if clicked_button is play_button:
-                            self.map_management(lambda: LevelLoader.levels)
+                            self.map_management(user.get_maps)
                         elif clicked_button is options_button:
                             self.settings_screen()
                         elif clicked_button is exit_button:
@@ -197,7 +198,8 @@ class Game:
 
         # Создаём кнопки и добавляем их в группу
         back_button = Button((50, 650, 200, 50), "Back", font, 'White', '#0496FF', '#006BA6')
-        menu_buttons = ButtonGroup(back_button)
+        add_map_button = Button((900, 100, 200, 50), "Add map", font, 'White', '#0496FF', '#006BA6')
+        menu_buttons = ButtonGroup(back_button, add_map_button)
 
         scroll = ScrollArea((50, 200, 675, 400), 100, 5, 128, (0, 0, 0), get_maps, self.play_screen)
 
@@ -219,7 +221,27 @@ class Game:
                         scroll.check_click(pygame.mouse.get_pos())
 
                 if clicked_button is back_button:
-                    break
+                    return
+
+                elif clicked_button is add_map_button:
+                    filepath = QFileDialog.getOpenFileName(None, "Open file",
+                                                           path_to_userdata("", str(user.get_user_id())),
+                                                           "Map metadata (*.json)")[0]
+                    with open(path_to_maps_config, mode="r+") as maps_file:
+                        maps = json.load(maps_file)
+                        if not filepath == "":
+                            with open(filepath) as file:
+                                data = json.load(file)
+                                for k, v in data.items():
+                                    copy_file(v["FILE_NAME"], str(user.get_user_id()))  # Save map in userdata
+                                    user.add_map(k, v["DESCRIPTION"], v["ACCESS"])
+                                    maps[k] = v
+                        else:
+                            logger.warning("Got null filename")
+                        maps_file.seek(0)
+                        json.dump(maps, maps_file, indent=2)
+                        maps_file.truncate()
+                        scroll.reload_content()
 
             keys = pygame.key.get_pressed()
             if keys[pygame.K_UP]:
@@ -349,14 +371,12 @@ class Game:
                             camera_group.projection = None
                             return True
 
-        run = True
-        while run:
+        while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
                 elif event == SAVE_AND_RETURN:
-                    run = False
                     base = None
                     UI = None
                     BUILDER = None
@@ -431,6 +451,7 @@ class Game:
                             BUILDER.delete_build_on_click(event.pos + camera_group.offset)
                 elif event == GAME_ENDED:
                     score = UI.end_game(mob_group.total_killed)
+                    user.save_score(map_name, score)
                     print('DA SCORE IS', score)
                     return
                 elif event == WAVE_CLEARED:

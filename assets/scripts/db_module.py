@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS maps
     title       VARCHAR(255)               NOT NULL,
     description VARCHAR(255)               NOT NULL,
     created     VARCHAR(255)               NOT NULL,
-    file        VARCHAR(255)               NOT NULL
+    type        VARCHAR(255)               NOT NULL
 );
         """
         self.cur.execute(build)
@@ -46,6 +46,18 @@ CREATE TABLE IF NOT EXISTS usermap
     PRIMARY KEY (user_id, map_id)
 );
         """
+        self.cur.execute(build)
+        build = """
+CREATE TABLE IF NOT EXISTS scores
+(
+    user_id INTEGER NOT NULL,
+    map_id  INTEGER NOT NULL,
+    score   INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (map_id) REFERENCES maps (id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, map_id)
+);
+    """
         self.cur.execute(build)
 
     def get_users(self):
@@ -109,12 +121,12 @@ CREATE TABLE IF NOT EXISTS usermap
         self.con.commit()
         return list(res)
 
-    def add_map(self, name, title, description, created, file):
+    def add_map(self, name, title, description, created, map_type):
         user = self.get_user_by_name(name)
         if not user:
             raise self.UserDoesntExistError(f"user with name {name} doesn't exist")
-        sql = """INSERT INTO maps(title, description, created, file) VALUES (?, ?, ?, ?)"""
-        res = list(self.cur.execute(sql, [title, description, created, file]))
+        sql = """INSERT INTO maps(title, description, created, type) VALUES (?, ?, ?, ?)"""
+        res = list(self.cur.execute(sql, [title, description, created, map_type]))
         sql = """INSERT INTO usermap VALUES (?, ?)"""
         res += list(self.cur.execute(sql, [user[0][0], self.cur.lastrowid]))
         self.con.commit()
@@ -124,8 +136,13 @@ CREATE TABLE IF NOT EXISTS usermap
         user = self.get_user_by_name(name)
         if not user:
             raise self.UserDoesntExistError(f"user with name {name} doesn't exist")
-        sql = """SELECT title, description, created, file FROM maps JOIN usermap ON (user_id=? OR user_id=0)"""
-        res = self.cur.execute(sql, [user[0][0]])
+        sql = """
+SELECT title, description, created, score
+FROM maps
+         JOIN usermap u ON (u.user_id = ? OR type = 'PUBLIC')
+         LEFT JOIN scores s ON (maps.id = s.map_id AND s.user_id = ?);
+         """
+        res = self.cur.execute(sql, [user[0][0], user[0][0]])
         return list(res)
 
     def get_map(self, username, map_name):
@@ -134,6 +151,11 @@ CREATE TABLE IF NOT EXISTS usermap
             raise self.UserDoesntExistError(f"user with name {username} doesn't exist")
         sql = """SELECT * FROM maps JOIN usermap ON (map_id=id AND (user_id=? OR user_id=0)) WHERE title=?"""
         res = self.cur.execute(sql, [user[0][0], map_name])
+        return list(res)
+
+    def get_maps(self):
+        sql = """SELECT title FROM maps"""
+        res = self.cur.execute(sql)
         return list(res)
 
     def access_map(self, name_from, name_to, map_name):
@@ -148,3 +170,15 @@ CREATE TABLE IF NOT EXISTS usermap
         res = self.cur.execute(sql, [user_to[0][0], map_[0][0]])
         self.con.commit()
         return list(res)
+
+    def save_score(self, username, map_name, score):
+        user = self.get_user_by_name(username)
+        if not user:
+            raise self.UserDoesntExistError(f"user with name {username} doesn't exist")
+        map_ = self.get_map(username, map_name)
+        if not map_:
+            raise self.MapNotFoundError(f"map with title {map_name} doesn't exist")
+        sql = """INSERT OR REPLACE INTO scores VALUES (?, ?, ?)"""
+        res = self.cur.execute(sql, [user[0][0], map_[0][0], score])
+        self.con.commit()
+        return res

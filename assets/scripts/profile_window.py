@@ -3,7 +3,7 @@ from PyQt5 import Qt, uic
 from PyQt5.QtCore import Qt as Qt2
 from PyQt5.QtWidgets import QDialog, QPushButton, QLineEdit, QLabel, QFileDialog
 from PyQt5.QtGui import QPixmap
-from assets.scripts.path_module import path_to_file, path_to_userdata, copy_file
+from assets.scripts.path_module import path_to_file, path_to_userdata, copy_file, path_to_asset
 from assets.scripts.config import user
 from assets.scripts.loggers import logger
 
@@ -21,7 +21,7 @@ class ProfileWindow(QDialog):
         self.init_ui()
 
     def init_ui(self):
-        uic.loadUi(path_to_file("assets", "uis", "profile.ui"), self)
+        uic.loadUi(path_to_asset("uis", "profile.ui"), self)
 
         self.username.setText(user.get_user())
 

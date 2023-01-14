@@ -44,7 +44,7 @@ class ScrollArea:
             data = pg.Surface(rect[2:])
 
             # Создаем тексты
-            title = font.render(k, True, "#E1FAF9")
+            title = font.render(k + (f" ({v['SCORE']})" if v["SCORE"] else ""), True, "#E1FAF9")
             description = small_font.render(v["DESCRIPTION"], True, "#E1FAF9")
             created = small_font.render(v["DATE"], True, "#E1FAF9")
 
