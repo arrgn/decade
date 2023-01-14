@@ -3,7 +3,7 @@ from PyQt5 import Qt, uic
 from PyQt5.QtCore import Qt as Qt2
 from PyQt5.QtWidgets import QDialog, QPushButton, QLineEdit, QLabel, QFileDialog
 from PyQt5.QtGui import QPixmap
-from assets.scripts.path_module import path_to_file, path_to_userdata, copy_file, path_to_asset
+from assets.scripts.path_module import path_to_file, path_to_userdata, copy_user_file, path_to_asset
 from assets.scripts.config import user
 from assets.scripts.loggers import logger
 
@@ -50,7 +50,7 @@ class ProfileWindow(QDialog):
         if file_name == "":
             logger.warning("Got null filename")
             return
-        copy_file(file_name, str(user.get_user_id()))  # Save avatar in userdata
+        copy_user_file(file_name, str(user.get_user_id()))  # Save avatar in userdata
         user.change_avatar(basename(file_name))
         self.load_avatar()
 

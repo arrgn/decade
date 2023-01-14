@@ -1,5 +1,5 @@
 from assets.scripts.db_module import DAO
-from assets.scripts.path_module import path_to_userdata, copy_file, create_user_dir
+from assets.scripts.path_module import path_to_userdata, copy_user_file, create_user_dir
 from assets.scripts.loggers import logger
 from datetime import datetime
 
@@ -28,7 +28,7 @@ class User:
             self.name = name
             self.id = str(self.dao.get_user_by_name(self.name)[0][0])
             create_user_dir(self.id)
-            copy_file(path_to_userdata("default.png", "default"), self.id)
+            copy_user_file(path_to_userdata("default.png", "default"), self.id)
             return True
         except DAO.UserExistsError:
             logger.exception("Tracked exception occurred!")
@@ -108,8 +108,6 @@ class User:
                     "DATE": el[2],
                     "SCORE": el[3],
                 }
-            print("!" * 100)
-            print(*res, sep="\n")
             return out
         except DAO.UserDoesntExistError:
             logger.exception("Tracked exception occurred!")

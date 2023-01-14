@@ -13,6 +13,7 @@
     "DESCRIPTION": "First level that was ever created. Map for a long run",
     "DATE": "12.01.2023",
     "FILE_NAME": "Map.tmx",
+    "ACCESS": "PUBLIC",
     "TIME_BREAKS": 25,
     "WAVES": {
       "1": 15,
@@ -41,6 +42,7 @@
     "DESCRIPTION": "Level with low amount of waves and short timer. Good for testing/debugging",
     "DATE": "13.01.2023",
     "FILE_NAME": "Map2.tmx",
+    "ACCESS": "PUBLIC",
     "TIME_BREAKS": 2,
     "WAVES": {
       "1": 2,
@@ -61,6 +63,7 @@
     "DESCRIPTION": "Great for showing how conveyors and buildings work",
     "DATE": "13.01.2023",
     "FILE_NAME": "Map3.tmx",
+    "ACCESS": "PUBLIC",
     "TIME_BREAKS": 200,
     "WAVES": {
       "1": 10,

@@ -2,6 +2,7 @@ import shutil
 
 from os import path, makedirs
 from os.path import basename, isdir
+from assets.scripts.loggers import logger
 
 
 def path_to_file(*elements) -> str:
@@ -27,11 +28,18 @@ def path_to_userdata(filename: str, user_id: str) -> str:
     return path_to_file("userdata", user_id, filename)
 
 
-def copy_file(src, username):
+def copy_user_file(src, username):
     try:
         shutil.copy(src, path_to_userdata(basename(src), username))
-    except shutil.SameFileError as e:
-        print(e)
+    except shutil.SameFileError:
+        logger.exception("Tracked exception occurred!")
+
+
+def copy_file(src, dist):
+    try:
+        shutil.copy(src, path_to_file(*dist))
+    except shutil.SameFileError:
+        logger.exception("Tracked exception occurred!")
 
 
 def create_user_dir(username):
@@ -40,13 +48,13 @@ def create_user_dir(username):
     """
     try:
         makedirs(path_to_userdata("", username))
-    except FileExistsError as e:
-        print(e)
+    except FileExistsError:
+        logger.exception("Tracked exception occurred!")
 
 
 def create_dir(*dirname):
     try:
         if not isdir(path_to_file(*dirname)):
             makedirs(path_to_file(*dirname))
-    except FileExistsError as e:
-        print(e)
+    except FileExistsError:
+        logger.exception("Tracked exception occurred!")

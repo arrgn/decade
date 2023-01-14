@@ -21,7 +21,7 @@ path_to_maps_config = path_to_asset("maps", "maps.json")
 
 with open(path_to_maps_config) as file:
     default_levels = json.load(file)
-all_levels = map(lambda x: x[0], dao.get_maps())
+all_levels = list(map(lambda x: x[0], dao.get_maps()))
 for k, v in default_levels.items():
     if k not in all_levels:
-        user.add_map(k, v["DESCRIPTION"], "PUBLIC")
+        user.add_map(k, v["DESCRIPTION"], v["ACCESS"])

@@ -7,7 +7,8 @@ import pygame_gui
 import random
 import json
 
-from assets.scripts.path_module import create_dir, copy_file, path_to_asset, path_to_file, path_to_userdata
+from assets.scripts.path_module import create_dir, copy_user_file, path_to_asset, path_to_file, path_to_userdata, \
+    copy_file
 
 if __name__ == "__main__":
     """
@@ -17,8 +18,9 @@ if __name__ == "__main__":
         В этом месте лучше копировать все необходимые файлы по умолчанию для юзера.
     """
     create_dir("userdata", "default")
-    copy_file(path_to_asset("images", "default.png"), "default")
+    copy_user_file(path_to_asset("images", "default.png"), "default")
 
+from os.path import basename
 from PyQt5 import Qt
 from PyQt5.QtWidgets import QFileDialog
 from pygame_textinput import TextInputVisualizer
@@ -219,6 +221,8 @@ class Game:
                 if clicked_button is None:
                     if self.profile_group.check_click(pygame.mouse.get_pos()):
                         scroll.check_click(pygame.mouse.get_pos())
+                    else:
+                        scroll.reload_content()
 
                 if clicked_button is back_button:
                     return
@@ -233,8 +237,9 @@ class Game:
                             with open(filepath) as file:
                                 data = json.load(file)
                                 for k, v in data.items():
-                                    copy_file(v["FILE_NAME"], str(user.get_user_id()))  # Save map in userdata
+                                    copy_file(v["FILE_NAME"], ["assets", "maps"])  # Save map in userdata
                                     user.add_map(k, v["DESCRIPTION"], v["ACCESS"])
+                                    v["FILE_NAME"] = basename(v["FILE_NAME"])
                                     maps[k] = v
                         else:
                             logger.warning("Got null filename")

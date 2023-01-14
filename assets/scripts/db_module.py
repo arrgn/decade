@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS users
 CREATE TABLE IF NOT EXISTS maps
 (
     id          INTEGER PRIMARY KEY UNIQUE NOT NULL,
-    title       VARCHAR(255)               NOT NULL,
+    title       VARCHAR(255) UNIQUE        NOT NULL,
     description VARCHAR(255)               NOT NULL,
     created     VARCHAR(255)               NOT NULL,
     type        VARCHAR(255)               NOT NULL
@@ -139,10 +139,12 @@ CREATE TABLE IF NOT EXISTS scores
         sql = """
 SELECT title, description, created, score
 FROM maps
-         JOIN usermap u ON (u.user_id = ? OR type = 'PUBLIC')
-         LEFT JOIN scores s ON (maps.id = s.map_id AND s.user_id = ?);
+         INNER JOIN usermap u ON u.map_id = maps.id
+         LEFT JOIN scores s ON s.user_id = u.user_id
+WHERE u.user_id = ?
+   OR maps.type = "PUBLIC";
          """
-        res = self.cur.execute(sql, [user[0][0], user[0][0]])
+        res = self.cur.execute(sql, [user[0][0]])
         return list(res)
 
     def get_map(self, username, map_name):
