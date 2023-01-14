@@ -33,13 +33,13 @@ from assets.scripts.profile_group import ProfileGroup
 from assets.scripts.fonts import *
 from assets.scripts.scroll_area import ScrollArea
 
+
 # class TurretGroup(pygame.sprite.Group):
 #     def __init__(self, *groups):
 #         super().__init__(*groups)
 
 #     def update(self, dt, mobs) -> None:
 #         pass
-
 
 
 class MobGroup(pygame.sprite.Group):
@@ -432,7 +432,7 @@ class Game:
                 elif event == GAME_ENDED:
                     score = UI.end_game(mob_group.total_killed)
                     print('DA SCORE IS', score)
-                    return 
+                    return
                 elif event == WAVE_CLEARED:
                     pass
                 elif event == WAVE_STARTS:
@@ -454,12 +454,12 @@ class Game:
             mob_group.update(dt)
             pygame.sprite.spritecollide(LevelLoader.ordered_level_sprites[2], bullet_group, True,
                                         pygame.sprite.collide_mask)
-            
+
             if base:
                 collision = pygame.sprite.spritecollide(base, mob_group, False)
                 if collision:
                     pygame.event.post(GAME_ENDED)
-                
+
             collision = pygame.sprite.groupcollide(bullet_group, mob_group, True, False)
             if collision:
                 enemy = tuple(collision.values())[0][0]

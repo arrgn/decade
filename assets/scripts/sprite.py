@@ -77,7 +77,6 @@ class Harvester(Structure):
                 if not conv.holding_item or conv.holding_item[0] == self.resource:
                     conv.transfer_resource(self.resource, self.holding)
                     self.holding = 0
-                    print(f'{self.holding=}')
                     break
 
 
@@ -123,7 +122,6 @@ class Conveyor(Structure):
             self.holding_item = (resource, amount)
         else:
             self.holding_item = self.holding_item[0], self.holding_item[1] + amount
-        print(f'Received: {resource=}, {self.holding_item[1]}')
 
     def update(self, dt, conveyer_dict, base_pos) -> None:
         if self.holding_item and self.looking_at:

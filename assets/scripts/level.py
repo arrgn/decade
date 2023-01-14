@@ -15,7 +15,7 @@ class LevelLoader:
             'DESCRIPTION': 'First level that was ever created. Map for a long run',
             'DATE': '12.01.2023',
             'FILE_NAME': "Map.tmx",
-            'TIME_BREAKS': 5,
+            'TIME_BREAKS': 25,
 
             'WAVES': {
                 1: 15,
