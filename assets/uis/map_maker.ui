@@ -27,42 +27,42 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QWidget" name="widget" native="true">
+    <widget class="QWidget" name="upperWidget" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <layout class="QFormLayout" name="formLayout">
+       <layout class="QFormLayout" name="mapForm">
         <item row="1" column="0">
-         <widget class="QLabel" name="label">
+         <widget class="QLabel" name="text1">
           <property name="text">
            <string>Название карты</string>
           </property>
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLineEdit" name="lineEdit">
+         <widget class="QLineEdit" name="mapNameInput">
           <property name="text">
            <string>New map</string>
           </property>
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_2">
+         <widget class="QLabel" name="text2">
           <property name="text">
            <string>Размер Tile'ов</string>
           </property>
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QLabel" name="label_3">
+         <widget class="QLabel" name="text3">
           <property name="text">
            <string>Размер уровня (В Tile'ах)</string>
           </property>
          </widget>
         </item>
         <item row="3" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <layout class="QHBoxLayout" name="levelSize">
           <item>
-           <widget class="QSpinBox" name="spinBox_3">
+           <widget class="QSpinBox" name="levelSizeX">
             <property name="minimum">
              <number>1</number>
             </property>
@@ -75,7 +75,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="spinBox_2">
+           <widget class="QSpinBox" name="levelSizeY">
             <property name="minimum">
              <number>1</number>
             </property>
@@ -90,7 +90,7 @@
          </layout>
         </item>
         <item row="2" column="1">
-         <widget class="QSpinBox" name="spinBox">
+         <widget class="QSpinBox" name="tileSize">
           <property name="minimum">
            <number>1</number>
           </property>
@@ -103,16 +103,16 @@
          </widget>
         </item>
         <item row="4" column="0">
-         <widget class="QLabel" name="label_4">
+         <widget class="QLabel" name="text4">
           <property name="text">
            <string>Положение солнца</string>
           </property>
          </widget>
         </item>
         <item row="4" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <layout class="QHBoxLayout" name="sunPos">
           <item>
-           <widget class="QSpinBox" name="spinBox_5">
+           <widget class="QSpinBox" name="sunPosX">
             <property name="minimum">
              <number>-10000</number>
             </property>
@@ -125,7 +125,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="spinBox_4">
+           <widget class="QSpinBox" name="sunPosY">
             <property name="minimum">
              <number>-10000</number>
             </property>
@@ -140,14 +140,14 @@
          </layout>
         </item>
         <item row="8" column="0">
-         <widget class="QLabel" name="label_5">
+         <widget class="QLabel" name="text7">
           <property name="text">
            <string>Описание</string>
           </property>
          </widget>
         </item>
         <item row="8" column="1">
-         <widget class="QTextEdit" name="textEdit">
+         <widget class="QTextEdit" name="descriptionInput">
           <property name="html">
            <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -161,28 +161,28 @@ p, li { white-space: pre-wrap; }
          </widget>
         </item>
         <item row="5" column="0">
-         <widget class="QLabel" name="label_6">
+         <widget class="QLabel" name="text5">
           <property name="text">
            <string>Файл с картой</string>
           </property>
          </widget>
         </item>
         <item row="5" column="1">
-         <widget class="QPushButton" name="pushButton_3">
+         <widget class="QPushButton" name="chooseMapButton">
           <property name="text">
            <string>Выбрать</string>
           </property>
          </widget>
         </item>
         <item row="6" column="0">
-         <widget class="QLabel" name="label_7">
+         <widget class="QLabel" name="text6">
           <property name="text">
            <string>Время между волнами</string>
           </property>
          </widget>
         </item>
         <item row="6" column="1">
-         <widget class="QSpinBox" name="spinBox_6">
+         <widget class="QSpinBox" name="timerBreakInput">
           <property name="minimum">
            <number>1</number>
           </property>
@@ -195,7 +195,7 @@ p, li { white-space: pre-wrap; }
          </widget>
         </item>
         <item row="9" column="0" colspan="2">
-         <widget class="QCheckBox" name="checkBox">
+         <widget class="QCheckBox" name="publicCheckbox">
           <property name="text">
            <string>Публичная для всех?</string>
           </property>
@@ -207,10 +207,17 @@ p, li { white-space: pre-wrap; }
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="widget_2" native="true">
+    <widget class="QWidget" name="bottomWidget" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QTableWidget" name="tableWidget">
+       <widget class="QLabel" name="errorLabel">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTableWidget" name="waveTable">
         <property name="sizeAdjustPolicy">
          <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
         </property>
@@ -230,22 +237,29 @@ p, li { white-space: pre-wrap; }
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QHBoxLayout" name="bottomButtons">
         <item>
-         <widget class="QPushButton" name="pushButton_2">
+         <widget class="QPushButton" name="removeWave">
           <property name="text">
            <string>Удалить последнюю</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="addWave">
           <property name="text">
            <string>Добавить волну</string>
           </property>
          </widget>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QPushButton" name="submitButton">
+        <property name="text">
+         <string>Готово</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
