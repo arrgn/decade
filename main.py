@@ -200,8 +200,9 @@ class Game:
 
         # Создаём кнопки и добавляем их в группу
         back_button = Button((50, 650, 200, 50), "Back", font, 'White', '#0496FF', '#006BA6')
-        add_map_button = Button((900, 100, 200, 50), "Add map", font, 'White', '#0496FF', '#006BA6')
-        menu_buttons = ButtonGroup(back_button, add_map_button)
+        add_map_button = Button((900, 100, 220, 50), "Add map w/JSON", font, 'White', '#0496FF', '#006BA6')
+        add_map_with_form = Button((900, 160, 220, 50), 'Add map via Form', font, 'White', '#0496FF', '#006BA6')
+        menu_buttons = ButtonGroup(back_button, add_map_button, add_map_with_form)
 
         scroll = ScrollArea((50, 200, 675, 400), 100, 5, 128, (0, 0, 0), get_maps, self.play_screen)
 
@@ -214,45 +215,47 @@ class Game:
                 elif event.type == pygame.MOUSEMOTION:
                     menu_buttons.check_hover(event.pos)
                     self.profile_group.check_hover(event.pos)
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == pygame.BUTTON_LEFT:
+                        clicked_button = menu_buttons.check_click(pygame.mouse.get_pos())
+                        if clicked_button is None:
+                            if self.profile_group.check_click(pygame.mouse.get_pos()):
+                                scroll.check_click(pygame.mouse.get_pos())
+                            else:
+                                scroll.reload_content()
 
-            # Отдельно проверяем нажатие мыши, тк mousebuttondown срабатывает на колесико
-            if pygame.mouse.get_pressed()[0]:
-                clicked_button = menu_buttons.check_click(pygame.mouse.get_pos())
-                if clicked_button is None:
-                    if self.profile_group.check_click(pygame.mouse.get_pos()):
-                        scroll.check_click(pygame.mouse.get_pos())
-                    else:
-                        scroll.reload_content()
+                        if clicked_button is back_button:
+                            return
 
-                if clicked_button is back_button:
-                    return
-
-                elif clicked_button is add_map_button:
-                    filepath = QFileDialog.getOpenFileName(None, "Open file",
-                                                           path_to_userdata("", str(user.get_user_id())),
-                                                           "Map metadata (*.json)")[0]
-                    with open(path_to_maps_config, mode="r+") as maps_file:
-                        maps = json.load(maps_file)
-                        if not filepath == "":
-                            with open(filepath) as file:
-                                data = json.load(file)
-                                for k, v in data.items():
-                                    copy_file(v["FILE_NAME"], ["assets", "maps"])  # Save map in userdata
-                                    user.add_map(k, v["DESCRIPTION"], v["ACCESS"])
-                                    v["FILE_NAME"] = basename(v["FILE_NAME"])
-                                    maps[k] = v
-                        else:
-                            logger.warning("Got null filename")
-                        maps_file.seek(0)
-                        json.dump(maps, maps_file, indent=2)
-                        maps_file.truncate()
-                        scroll.reload_content()
-
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_UP]:
-                scroll.scroll(-3)
-            elif keys[pygame.K_DOWN]:
-                scroll.scroll(3)
+                        elif clicked_button is add_map_button:
+                            filepath = QFileDialog.getOpenFileName(None, "Open file",
+                                                                   path_to_userdata("", str(user.get_user_id())),
+                                                                   "Map metadata (*.json)")[0]
+                            with open(path_to_maps_config, mode="r+") as maps_file:
+                                maps = json.load(maps_file)
+                                if not filepath == "":
+                                    with open(filepath) as file:
+                                        data = json.load(file)
+                                        for k, v in data.items():
+                                            copy_file(v["FILE_NAME"], ["assets", "maps"])  # Save map in userdata
+                                            user.add_map(k, v["DESCRIPTION"], v["ACCESS"])
+                                            v["FILE_NAME"] = basename(v["FILE_NAME"])
+                                            maps[k] = v
+                                else:
+                                    logger.warning("Got null filename")
+                                maps_file.seek(0)
+                                json.dump(maps, maps_file, indent=2)
+                                maps_file.truncate()
+                                scroll.reload_content()
+                elif event.type == pygame.MOUSEWHEEL:
+                    scroll.scroll(-event.y)
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        print('scrolling up')
+                        scroll.scroll(-3)
+                    elif event.key == pygame.K_DOWN:
+                        print('scrolling down')
+                        scroll.scroll(3)
 
             # Отрисовываем всё по порядку
             self.screen.blit(bg, (0, 0))
