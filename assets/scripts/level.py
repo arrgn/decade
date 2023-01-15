@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 
 import pygame
 
@@ -26,6 +27,10 @@ class LevelLoader:
         with open(path_to_maps_config) as file:
             cls.level = json.load(file)[level]
             cls.level["SUN_POSITION"] = pygame.math.Vector2(*cls.level["SUN_POSITION"])
+            temp = deepcopy(cls.level["WAVES"])
+            cls.level["WAVES"] = {}
+            for k, v in temp.items():
+                cls.level["WAVES"][int(k)] = v
         tmx_data = load_pygame(path_to_asset("maps", cls.level["FILE_NAME"]))
 
         tiles = dict()
