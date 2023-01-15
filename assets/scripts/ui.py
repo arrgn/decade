@@ -234,6 +234,7 @@ class IngameUI:
                     pygame.event.post(SAVE_AND_RETURN)
                     return score
 
+                final_panel.show()
                 dt = temp_clock.tick(30)
                 self.manager.process_events(event)
                 self.manager.update(dt / 1000)
