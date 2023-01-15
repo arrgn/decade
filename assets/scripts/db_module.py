@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS scores
         self.cur.execute(build)
 
     def get_users(self):
-        sql = """SELECT username FROM users WHERE username!='guest'"""
+        sql = """SELECT username FROM users WHERE id != 1"""
         res = self.cur.execute(sql)
         return list(res)
 
