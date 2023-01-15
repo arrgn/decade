@@ -137,14 +137,14 @@ CREATE TABLE IF NOT EXISTS scores
         if not user:
             raise self.UserDoesntExistError(f"user with name {name} doesn't exist")
         sql = """
-SELECT title, description, created, score
+SELECT title, description, created, CASE WHEN s.user_id NOT NULL AND s.user_id = ? THEN s.score END AS score
 FROM maps
-         INNER JOIN usermap u ON u.map_id = maps.id
-         LEFT JOIN scores s ON s.user_id = u.user_id
-WHERE u.user_id = ?
-   OR maps.type = "PUBLIC";
+         LEFT JOIN usermap u ON u.map_id = maps.id
+         LEFT JOIN scores s on maps.id = s.map_id
+WHERE maps.type = 'PUBLIC'
+   OR (maps.type = 'PRIVATE' AND u.user_id = ?);
          """
-        res = self.cur.execute(sql, [user[0][0]])
+        res = self.cur.execute(sql, [user[0][0], user[0][0]])
         return list(res)
 
     def get_map(self, username, map_name):
