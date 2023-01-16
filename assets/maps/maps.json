@@ -70,27 +70,5 @@
       "2": 10,
       "3": 12
     }
-  },
-  "456": {
-    "TILE_WIDTH": 32,
-    "TILE_HEIGHT": 32,
-    "LEVEL_SIZE": [
-      2240,
-      2080
-    ],
-    "SUN_POSITION": [
-      10000,
-      -7000
-    ],
-    "DESCRIPTION": "Great for showing how conveyors and buildings work",
-    "DATE": "13.01.2023",
-    "FILE_NAME": "123.tmx",
-    "ACCESS": "PUBLIC",
-    "TIME_BREAKS": 200,
-    "WAVES": {
-      "1": 10,
-      "2": 10,
-      "3": 12
-    }
   }
 }

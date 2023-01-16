@@ -1,7 +1,7 @@
 import pygame as pg
 from typing import Union, Callable, Any
-from assets.scripts.fonts import *
-from assets.scripts.button import SurfaceButton, ButtonGroup
+from assets.scripts.instances.fonts import *
+from assets.scripts.ui.button import SurfaceButton, ButtonGroup
 
 
 class ScrollArea:

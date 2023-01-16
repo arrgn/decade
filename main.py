@@ -8,6 +8,7 @@ import pygame_gui
 import random
 import json
 
+from assets.scripts.QT.permissions import PermissionWindow
 from assets.scripts.path_module import create_dir, copy_user_file, path_to_asset, path_to_file, path_to_userdata, \
     copy_file
 
@@ -23,20 +24,20 @@ if __name__ == "__main__":
 
 from os.path import basename
 from PyQt5 import Qt
-from PyQt5.QtWidgets import QFileDialog, QApplication
+from PyQt5.QtWidgets import QFileDialog
 from pygame_textinput import TextInputVisualizer
-from assets.scripts.config import release, music_player, user, path_to_maps_config
-from assets.scripts.loggers import logger
-from assets.scripts.sprite import *
-from assets.scripts.events import *
-from assets.scripts.building import init as BuilderInit
-from assets.scripts.button import Button, ButtonGroup
+from assets.scripts.configuration.config import release, music_player, user, path_to_maps_config
+from assets.scripts.configuration.loggers import logger
+from assets.scripts.ui.sprite import *
+from assets.scripts.instances.events import *
+from assets.scripts.ui.building import init as BuilderInit
+from assets.scripts.ui.button import Button, ButtonGroup
 from assets.scripts.level import LevelLoader
-from assets.scripts.ui import IngameUI
+from assets.scripts.ui.ui import IngameUI
 from assets.scripts.profile_group import ProfileGroup
-from assets.scripts.fonts import *
-from assets.scripts.scroll_area import ScrollArea
-from assets.scripts.map_form import FormWindow
+from assets.scripts.instances.fonts import *
+from assets.scripts.ui.scroll_area import ScrollArea
+from assets.scripts.QT.map_form import FormWindow
 
 
 class MobGroup(pygame.sprite.Group):
@@ -99,10 +100,6 @@ class CameraGroup(pygame.sprite.Group):
         for sprite in sorted(self.sprites(), key=lambda x: x.display_layer):
             offsetPos = sprite.rect.topleft - self.offset
             self.display_surface.blit(sprite.image, offsetPos)
-
-
-def add_map_data(info):
-    print(info)
 
 
 class Game:
@@ -199,7 +196,8 @@ class Game:
         back_button = Button((50, 650, 200, 50), "Back", font, 'White', '#0496FF', '#006BA6')
         add_map_button = Button((900, 100, 220, 50), "Add map w/JSON", font, 'White', '#0496FF', '#006BA6')
         add_map_with_form = Button((900, 160, 220, 50), 'Add map via Form', font, 'White', '#0496FF', '#006BA6')
-        menu_buttons = ButtonGroup(back_button, add_map_button, add_map_with_form)
+        manage_access_button = Button((900, 220, 220, 50), "Manage access", font, 'White', '#0496FF', '#006BA6')
+        menu_buttons = ButtonGroup(back_button, add_map_button, add_map_with_form, manage_access_button)
 
         scroll = ScrollArea((50, 200, 675, 400), 100, 5, 128, (0, 0, 0), get_maps, self.play_screen)
 
@@ -214,6 +212,14 @@ class Game:
                 maps_file.seek(0)
                 json.dump(maps, maps_file, indent=2)
                 maps_file.truncate()
+
+        def change_access(new: list[list[str, bool]], old: list[list[str, bool]], map_: str):
+            for i in range(len(new)):
+                if new[i] != old[i]:
+                    if new[i][1]:
+                        user.give_access_to_map(new[i][0], map_, "USER")
+                    else:
+                        user.take_away_access_to_map(new[i][0], map_)
 
         while True:
             for event in pygame.event.get():
@@ -247,10 +253,18 @@ class Game:
                             else:
                                 logger.warning("Got null filename")
                             scroll.reload_content()
+
                         elif clicked_button is add_map_with_form:
                             window = FormWindow()
                             window.show()
                             window.map_added.connect(add_map_data)
+
+                        elif clicked_button is manage_access_button:
+                            map_name = "The Cave of the Devotee"
+                            data = list(map(lambda x: [x[0], x[1] is not None], user.get_users_with_access(map_name)))
+                            window = PermissionWindow(map_name, data)
+                            window.show()
+                            window.permission_changed.connect(lambda x: change_access(x, data, map_name))
 
                 elif event.type == pygame.MOUSEWHEEL:
                     scroll.scroll(-event.y)

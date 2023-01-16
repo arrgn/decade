@@ -1,7 +1,6 @@
 from assets.scripts.db_module import DAO
 from assets.scripts.path_module import path_to_userdata, copy_user_file, create_user_dir
-from assets.scripts.loggers import logger
-from datetime import datetime
+from assets.scripts.configuration.loggers import logger
 
 
 class User:
@@ -123,7 +122,7 @@ class User:
 
     def access_map(self, user_to, map_name):
         try:
-            self.dao.access_map(self.get_user(), user_to, map_name)
+            self.dao.give_access_to_map(self.get_user(), user_to, map_name)
             return True
         except (DAO.UserDoesntExistError, DAO.MapNotFoundError):
             logger.exception("Tracked exception occurred!")
@@ -136,3 +135,27 @@ class User:
         except (DAO.UserDoesntExistError, DAO.MapNotFoundError):
             logger.exception("Tracked exception occurred!")
         return False
+
+    def give_access_to_map(self, username, map_name, permission):
+        try:
+            self.dao.give_access_to_map(self.get_user(), username, map_name, permission)
+            return True
+        except (DAO.UserDoesntExistError, DAO.MapNotFoundError, DAO.PermissionDeniedError):
+            logger.exception("Tracked exception occurred!")
+        return False
+
+    def take_away_access_to_map(self, username, map_name):
+        try:
+            self.dao.take_away_access_to_map(self.get_user(), username, map_name)
+            return True
+        except (DAO.UserDoesntExistError, DAO.MapNotFoundError, DAO.PermissionDeniedError):
+            logger.exception("Tracked exception occurred!")
+        return False
+
+    def get_users_with_access(self, map_name):
+        try:
+            res = self.dao.get_users_with_access(self.get_user(), map_name)
+            return res
+        except DAO.MapNotFoundError:
+            logger.exception("Tracked exception occurred!")
+        return []
