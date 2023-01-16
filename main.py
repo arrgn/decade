@@ -1,6 +1,7 @@
 import logging.config
 import sys
 import traceback
+import typing
 
 import pygame.event
 import pygame_gui
@@ -202,6 +203,18 @@ class Game:
 
         scroll = ScrollArea((50, 200, 675, 400), 100, 5, 128, (0, 0, 0), get_maps, self.play_screen)
 
+        def add_map_data(info: typing.Dict[str, typing.Any]):
+            with open(path_to_maps_config, mode="r+") as maps_file:
+                maps = json.load(maps_file)
+                for k, v in info.items():
+                    copy_file(v["FILE_NAME"], ["assets", "maps"])  # Save map in userdata
+                    user.add_map(k, v["DESCRIPTION"], v["ACCESS"], v["DATE"])
+                    v["FILE_NAME"] = basename(v["FILE_NAME"])
+                    maps[k] = v
+                maps_file.seek(0)
+                json.dump(maps, maps_file, indent=2)
+                maps_file.truncate()
+
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -227,27 +240,17 @@ class Game:
                             filepath = QFileDialog.getOpenFileName(None, "Open file",
                                                                    path_to_userdata("", str(user.get_user_id())),
                                                                    "Map metadata (*.json)")[0]
-                            with open(path_to_maps_config, mode="r+") as maps_file:
-                                maps = json.load(maps_file)
-                                if not filepath == "":
-                                    with open(filepath) as file:
-                                        data = json.load(file)
-                                        for k, v in data.items():
-                                            copy_file(v["FILE_NAME"], ["assets", "maps"])  # Save map in userdata
-                                            user.add_map(k, v["DESCRIPTION"], v["ACCESS"])
-                                            v["FILE_NAME"] = basename(v["FILE_NAME"])
-                                            maps[k] = v
-                                else:
-                                    logger.warning("Got null filename")
-                                maps_file.seek(0)
-                                json.dump(maps, maps_file, indent=2)
-                                maps_file.truncate()
-                                scroll.reload_content()
+                            if not filepath == "":
+                                with open(filepath) as file:
+                                    data = json.load(file)
+                                    add_map_data(data)
+                            else:
+                                logger.warning("Got null filename")
+                            scroll.reload_content()
                         elif clicked_button is add_map_with_form:
                             window = FormWindow()
                             window.show()
                             window.map_added.connect(add_map_data)
-                        
 
                 elif event.type == pygame.MOUSEWHEEL:
                     scroll.scroll(-event.y)

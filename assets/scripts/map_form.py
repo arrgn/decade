@@ -6,10 +6,10 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QTableWidget, QInputDialog, QTableWidgetItem,
                              QWidget)
 from datetime import date
-import json
+
 
 class FormWindow(QWidget):
-    map_added = pyqtSignal(str)
+    map_added = pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()
@@ -54,9 +54,8 @@ class FormWindow(QWidget):
             }
         }
 
-        self.map_added.emit(json.dumps(info))
+        self.map_added.emit(info)
         self.close()
-        
 
     def open_file_dialog(self):
         filepath = QFileDialog.getOpenFileName(self, 'Choose map', '', 'Map (*.tmx)')[0]
@@ -80,7 +79,7 @@ class FormWindow(QWidget):
             self.waveTable.setItem(rowCount - 1, 0, data2)
 
     def remove_wave(self):
-        rowCount = self.waveTable.rowCount() 
+        rowCount = self.waveTable.rowCount()
         if rowCount > 0:
             self.waveTable.setRowCount(rowCount - 1)
             self.waves.pop()

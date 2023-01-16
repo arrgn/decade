@@ -24,4 +24,4 @@ with open(path_to_maps_config) as file:
 all_levels = list(map(lambda x: x[0], dao.get_maps()))
 for k, v in default_levels.items():
     if k not in all_levels:
-        user.add_map(k, v["DESCRIPTION"], v["ACCESS"])
+        user.add_map(k, v["DESCRIPTION"], v["ACCESS"], v["DATE"])

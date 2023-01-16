@@ -59,6 +59,7 @@ class ScrollArea:
         self.button_group.change_buttons(*self.buttons)
 
     def scroll(self, dy):
+        dy *= 30  # either scrolling is too slow
         self.offset += dy
         if self.offset < 0:
             self.offset = 0

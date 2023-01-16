@@ -90,9 +90,9 @@ class User:
             logger.exception("Tracked exception occurred!")
         return False
 
-    def add_map(self, title, description, map_type):
+    def add_map(self, title, description, map_type, date):
         try:
-            self.dao.add_map(self.get_user(), title, description, datetime.now(), map_type)
+            self.dao.add_map(self.get_user(), title, description, date, map_type)
             return True
         except DAO.UserDoesntExistError:
             logger.exception("Tracked exception occurred!")
