@@ -244,12 +244,10 @@ class Game:
                                 maps_file.truncate()
                                 scroll.reload_content()
                         elif clicked_button is add_map_with_form:
-                            app = QApplication(sys.argv)
-
                             window = FormWindow()
                             window.show()
                             window.map_added.connect(add_map_data)
-                            app.exec_()
+                        
 
                 elif event.type == pygame.MOUSEWHEEL:
                     scroll.scroll(-event.y)
