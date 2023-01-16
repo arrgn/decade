@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
 from os.path import basename
 from PyQt5 import Qt
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QApplication
 from pygame_textinput import TextInputVisualizer
 from assets.scripts.config import release, music_player, user, path_to_maps_config
 from assets.scripts.loggers import logger
@@ -35,14 +35,7 @@ from assets.scripts.ui import IngameUI
 from assets.scripts.profile_group import ProfileGroup
 from assets.scripts.fonts import *
 from assets.scripts.scroll_area import ScrollArea
-
-
-# class TurretGroup(pygame.sprite.Group):
-#     def __init__(self, *groups):
-#         super().__init__(*groups)
-
-#     def update(self, dt, mobs) -> None:
-#         pass
+from assets.scripts.map_form import FormWindow
 
 
 class MobGroup(pygame.sprite.Group):
@@ -95,7 +88,6 @@ class CameraGroup(pygame.sprite.Group):
         self.offset.x = target.rect.centerx - self.half_w
         self.offset.y = target.rect.centery - self.half_h
         if self.projection:
-            # print(self.projection, len(self.sprites()))
             cursor_pos = pygame.mouse.get_pos() + self.offset
             self.projection.rect.topleft = cursor_pos[0] // 64 * 64 - 32, cursor_pos[1] // 64 * 64
 
@@ -106,6 +98,10 @@ class CameraGroup(pygame.sprite.Group):
         for sprite in sorted(self.sprites(), key=lambda x: x.display_layer):
             offsetPos = sprite.rect.topleft - self.offset
             self.display_surface.blit(sprite.image, offsetPos)
+
+
+def add_map_data(info):
+    print(info)
 
 
 class Game:
@@ -247,6 +243,14 @@ class Game:
                                 json.dump(maps, maps_file, indent=2)
                                 maps_file.truncate()
                                 scroll.reload_content()
+                        elif clicked_button is add_map_with_form:
+                            app = QApplication(sys.argv)
+
+                            window = FormWindow()
+                            window.show()
+                            window.map_added.connect(add_map_data)
+                            app.exec_()
+
                 elif event.type == pygame.MOUSEWHEEL:
                     scroll.scroll(-event.y)
                 elif event.type == pygame.KEYDOWN:
