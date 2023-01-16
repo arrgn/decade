@@ -309,7 +309,7 @@ class Game:
 
         # Поля ввода
         sound_volume = TextInputVisualizer(font_object=font, antialias=True)
-        sound_volume.value = str(int(getattr(music_player, 'mult', 1) * 100))
+        sound_volume.value = str(music_player.mult * 100)
 
         run = True
         while run:
@@ -338,6 +338,10 @@ class Game:
                         value = sound_volume.value
                         if value.isdigit():
                             value = float(value) / 100
+                            if value < 0:
+                                value = 0
+                            elif value > 1:
+                                value = 1
                             music_player.set_global_volume(value)
 
             # Отрисовываем всё по порядку
