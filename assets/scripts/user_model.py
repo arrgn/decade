@@ -159,3 +159,11 @@ class User:
         except DAO.MapNotFoundError:
             logger.exception("Tracked exception occurred!")
         return []
+
+    def get_owned_maps(self):
+        try:
+            res = list(map(lambda x: x[0], self.dao.get_owned_maps(self.get_user())))
+            return res
+        except DAO.UserDoesntExistError:
+            logger.exception("Tracked exception occurred!")
+        return []

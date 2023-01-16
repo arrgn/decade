@@ -16,13 +16,13 @@ class UserEntry(QWidget):
 
 
 class PermissionWindow(QWidget):
-    permission_changed = pyqtSignal(list)
+    permission_changed = pyqtSignal(list, str)
 
-    def __init__(self, map_name, users):
+    def __init__(self, maps, users):
         super().__init__()
         uic.loadUi(path_to_asset('uis', 'permissions_form.ui'), self)
         self.submitButton.clicked.connect(self.change_info)
-        self.set_map_name(map_name)
+        self.comboBox.addItems(maps)
         self.names = list()
         self.checkboxes = list()
 
@@ -39,14 +39,11 @@ class PermissionWindow(QWidget):
         layout.addSpacerItem(QSpacerItem(0, 999))
         self.scrollArea.setLayout(layout)
 
-    def set_map_name(self, name):
-        self.label.setText(f'Choose users that will have access to "{name}"')
-
     def change_info(self):
         new_info = list()
         for name, checkbox in zip(self.names, self.checkboxes):
             new_info.append((name, bool(checkbox.checkState())))
-        self.permission_changed.emit(new_info)
+        self.permission_changed.emit(new_info, self.comboBox.currentText())
 
 
 if __name__ == '__main__':

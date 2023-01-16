@@ -262,9 +262,9 @@ class Game:
                         elif clicked_button is manage_access_button:
                             map_name = "The Cave of the Devotee"
                             data = list(map(lambda x: [x[0], x[1] is not None], user.get_users_with_access(map_name)))
-                            window = PermissionWindow(map_name, data)
+                            window = PermissionWindow(user.get_owned_maps(), data)
                             window.show()
-                            window.permission_changed.connect(lambda x: change_access(x, data, map_name))
+                            window.permission_changed.connect(lambda x, y: change_access(x, data, y))
 
                 elif event.type == pygame.MOUSEWHEEL:
                     scroll.scroll(-event.y)

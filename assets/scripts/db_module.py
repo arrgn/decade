@@ -171,6 +171,12 @@ WHERE maps.type = 'PUBLIC'
         map_ = self.get_map(map_name)
         if not map_:
             raise self.MapNotFoundError(f"map with title {map_name} doesn't exist")
+        sql = """SELECT permission FROM usermap WHERE user_id = ? AND map_id = ?"""
+        user_from_right = list(self.cur.execute(sql, [user_from[0][0], map_[0][0]]))
+        if not user_from_right:
+            raise self.PermissionDeniedError(f"User {name_to} haven't necessary permissions on map {map_name}")
+        elif user_from_right[0][0] != "OWNER":
+            raise self.PermissionDeniedError(f"User {name_from} haven't necessary permissions on map {map_name}")
         sql = """INSERT INTO usermap VALUES (?, ?, ?)"""
         res = self.cur.execute(sql, [user_to[0][0], map_[0][0], permission])
         self.con.commit()
@@ -189,13 +195,13 @@ WHERE maps.type = 'PUBLIC'
         sql = """SELECT permission FROM usermap WHERE user_id = ? AND map_id = ?"""
         user_from_right = list(self.cur.execute(sql, [user_from[0][0], map_[0][0]]))
         if not user_from_right:
-            raise self.PermissionDeniedError(f"User {user_from} haven't necessary permissions on map {map_name}")
+            raise self.PermissionDeniedError(f"User {name_from} haven't necessary permissions on map {map_name}")
         elif user_from_right[0][0] != "OWNER":
-            raise self.PermissionDeniedError(f"User {user_from} haven't necessary permissions on map {map_name}")
+            raise self.PermissionDeniedError(f"User {name_from} haven't necessary permissions on map {map_name}")
         user_to_right = list(self.cur.execute(sql, [user_to[0][0], map_[0][0]]))
         if user_to_right:
             if user_to_right[0][0] == "OWNER":
-                raise self.PermissionDeniedError(f"User {user_from} haven't necessary permissions on map {map_name}")
+                raise self.PermissionDeniedError(f"User {name_to} have such permissions on map {map_name}")
         sql = """DELETE FROM usermap WHERE user_id = ? AND map_id = ?"""
         res = self.cur.execute(sql, [user_to[0][0], map_[0][0]])
         return list(res)
@@ -227,4 +233,18 @@ FROM maps m,
 WHERE m.id = ? AND users.id != ?;
         """
         res = self.cur.execute(sql, [map_[0][0], user[0][0]])
+        return list(res)
+
+    def get_owned_maps(self, username):
+        user = self.get_user_by_name(username)
+        if not user:
+            raise self.UserDoesntExistError(f"user with name {username} doesn't exist")
+        sql = """
+SELECT title
+FROM maps m,
+     users
+         JOIN usermap u ON users.id = u.user_id AND m.id = u.map_id AND u.permission = 'OWNER'
+WHERE users.id = ?;
+        """
+        res = self.cur.execute(sql, [user[0][0]])
         return list(res)
