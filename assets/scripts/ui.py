@@ -234,12 +234,13 @@ class IngameUI:
                     pygame.event.post(SAVE_AND_RETURN)
                     return score
 
-                final_panel.show()
-                dt = temp_clock.tick(30)
-                self.manager.process_events(event)
-                self.manager.update(dt / 1000)
-                self.manager.draw_ui(self.screen)
-                pygame.display.update()
+            
+            final_panel.show()
+            dt = temp_clock.tick(30)
+            self.manager.process_events(event)
+            self.manager.update(dt / 1000)
+            self.manager.draw_ui(self.screen)
+            pygame.display.update()
 
     def pause_game(self):
         temp_clock = pygame.time.Clock()
