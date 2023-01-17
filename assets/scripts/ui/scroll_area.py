@@ -1,7 +1,7 @@
 import pygame as pg
 from typing import Union, Callable, Any
-from assets.scripts.fonts import *
-from assets.scripts.button import SurfaceButton, ButtonGroup
+from assets.scripts.instances.fonts import *
+from assets.scripts.ui.button import SurfaceButton, ButtonGroup
 
 
 class ScrollArea:
@@ -59,6 +59,7 @@ class ScrollArea:
         self.button_group.change_buttons(*self.buttons)
 
     def scroll(self, dy):
+        dy *= 30  # either scrolling is too slow
         self.offset += dy
         if self.offset < 0:
             self.offset = 0

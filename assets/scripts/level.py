@@ -5,8 +5,8 @@ import pygame
 
 from pytmx.util_pygame import load_pygame
 
-from assets.scripts.config import path_to_maps_config
-from assets.scripts.sprite import Tile, VectorShadow
+from assets.scripts.configuration.config import path_to_maps_config
+from assets.scripts.ui.sprite import Tile, VectorShadow
 from assets.scripts.path_module import path_to_asset
 
 

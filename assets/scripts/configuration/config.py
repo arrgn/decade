@@ -15,7 +15,7 @@ user = User(database=dao)
 if not dao.get_user_by_name(default_user[0]):
     user.add_user(*default_user)
 
-music_player = MusicPlayer()
+music_player = MusicPlayer(mult=0.1)
 
 path_to_maps_config = path_to_asset("maps", "maps.json")
 
@@ -24,4 +24,4 @@ with open(path_to_maps_config) as file:
 all_levels = list(map(lambda x: x[0], dao.get_maps()))
 for k, v in default_levels.items():
     if k not in all_levels:
-        user.add_map(k, v["DESCRIPTION"], v["ACCESS"])
+        user.add_map(k, v["DESCRIPTION"], v["ACCESS"], v["DATE"])

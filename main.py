@@ -1,12 +1,14 @@
 import logging.config
 import sys
 import traceback
+import typing
 
 import pygame.event
 import pygame_gui
 import random
 import json
 
+from assets.scripts.QT.permissions import PermissionWindow
 from assets.scripts.path_module import create_dir, copy_user_file, path_to_asset, path_to_file, path_to_userdata, \
     copy_file
 
@@ -24,25 +26,18 @@ from os.path import basename
 from PyQt5 import Qt
 from PyQt5.QtWidgets import QFileDialog
 from pygame_textinput import TextInputVisualizer
-from assets.scripts.config import release, music_player, user, path_to_maps_config
-from assets.scripts.loggers import logger
-from assets.scripts.sprite import *
-from assets.scripts.events import *
-from assets.scripts.building import init as BuilderInit
-from assets.scripts.button import Button, ButtonGroup
+from assets.scripts.configuration.config import release, music_player, user, path_to_maps_config
+from assets.scripts.configuration.loggers import logger
+from assets.scripts.ui.sprite import *
+from assets.scripts.instances.events import *
+from assets.scripts.ui.building import init as BuilderInit
+from assets.scripts.ui.button import Button, ButtonGroup
 from assets.scripts.level import LevelLoader
-from assets.scripts.ui import IngameUI
+from assets.scripts.ui.ui import IngameUI
 from assets.scripts.profile_group import ProfileGroup
-from assets.scripts.fonts import *
-from assets.scripts.scroll_area import ScrollArea
-
-
-# class TurretGroup(pygame.sprite.Group):
-#     def __init__(self, *groups):
-#         super().__init__(*groups)
-
-#     def update(self, dt, mobs) -> None:
-#         pass
+from assets.scripts.instances.fonts import *
+from assets.scripts.ui.scroll_area import ScrollArea
+from assets.scripts.QT.map_form import FormWindow
 
 
 class MobGroup(pygame.sprite.Group):
@@ -95,7 +90,6 @@ class CameraGroup(pygame.sprite.Group):
         self.offset.x = target.rect.centerx - self.half_w
         self.offset.y = target.rect.centery - self.half_h
         if self.projection:
-            # print(self.projection, len(self.sprites()))
             cursor_pos = pygame.mouse.get_pos() + self.offset
             self.projection.rect.topleft = cursor_pos[0] // 64 * 64 - 32, cursor_pos[1] // 64 * 64
 
@@ -202,9 +196,30 @@ class Game:
         back_button = Button((50, 650, 200, 50), "Back", font, 'White', '#0496FF', '#006BA6')
         add_map_button = Button((900, 100, 220, 50), "Add map w/JSON", font, 'White', '#0496FF', '#006BA6')
         add_map_with_form = Button((900, 160, 220, 50), 'Add map via Form', font, 'White', '#0496FF', '#006BA6')
-        menu_buttons = ButtonGroup(back_button, add_map_button, add_map_with_form)
+        manage_access_button = Button((900, 220, 220, 50), "Manage access", font, 'White', '#0496FF', '#006BA6')
+        menu_buttons = ButtonGroup(back_button, add_map_button, add_map_with_form, manage_access_button)
 
         scroll = ScrollArea((50, 200, 675, 400), 100, 5, 128, (0, 0, 0), get_maps, self.play_screen)
+
+        def add_map_data(info: typing.Dict[str, typing.Any]):
+            with open(path_to_maps_config, mode="r+") as maps_file:
+                maps = json.load(maps_file)
+                for k, v in info.items():
+                    copy_file(v["FILE_NAME"], ["assets", "maps"])  # Save map in userdata
+                    user.add_map(k, v["DESCRIPTION"], v["ACCESS"], v["DATE"])
+                    v["FILE_NAME"] = basename(v["FILE_NAME"])
+                    maps[k] = v
+                maps_file.seek(0)
+                json.dump(maps, maps_file, indent=2)
+                maps_file.truncate()
+
+        def change_access(new: list[list[str, bool]], old: list[list[str, bool]], map_: str):
+            for i in range(len(new)):
+                if new[i] != old[i]:
+                    if new[i][1]:
+                        user.give_access_to_map(new[i][0], map_, "USER")
+                    else:
+                        user.take_away_access_to_map(new[i][0], map_)
 
         while True:
             for event in pygame.event.get():
@@ -229,24 +244,28 @@ class Game:
 
                         elif clicked_button is add_map_button:
                             filepath = QFileDialog.getOpenFileName(None, "Open file",
-                                                                path_to_userdata("", str(user.get_user_id())),
-                                                                "Map metadata (*.json)")[0]
-                            with open(path_to_maps_config, mode="r+") as maps_file:
-                                maps = json.load(maps_file)
-                                if not filepath == "":
-                                    with open(filepath) as file:
-                                        data = json.load(file)
-                                        for k, v in data.items():
-                                            copy_file(v["FILE_NAME"], ["assets", "maps"])  # Save map in userdata
-                                            user.add_map(k, v["DESCRIPTION"], v["ACCESS"])
-                                            v["FILE_NAME"] = basename(v["FILE_NAME"])
-                                            maps[k] = v
-                                else:
-                                    logger.warning("Got null filename")
-                                maps_file.seek(0)
-                                json.dump(maps, maps_file, indent=2)
-                                maps_file.truncate()
-                                scroll.reload_content()
+                                                                   path_to_userdata("", str(user.get_user_id())),
+                                                                   "Map metadata (*.json)")[0]
+                            if not filepath == "":
+                                with open(filepath) as file:
+                                    data = json.load(file)
+                                    add_map_data(data)
+                            else:
+                                logger.warning("Got null filename")
+                            scroll.reload_content()
+
+                        elif clicked_button is add_map_with_form:
+                            window = FormWindow()
+                            window.show()
+                            window.map_added.connect(add_map_data)
+
+                        elif clicked_button is manage_access_button:
+                            map_name = "The Cave of the Devotee"
+                            data = list(map(lambda x: [x[0], x[1] is not None], user.get_users_with_access(map_name)))
+                            window = PermissionWindow(user.get_owned_maps(), data)
+                            window.show()
+                            window.permission_changed.connect(lambda x, y: change_access(x, data, y))
+
                 elif event.type == pygame.MOUSEWHEEL:
                     scroll.scroll(-event.y)
                 elif event.type == pygame.KEYDOWN:
@@ -290,7 +309,7 @@ class Game:
 
         # Поля ввода
         sound_volume = TextInputVisualizer(font_object=font, antialias=True)
-        sound_volume.value = str(int(getattr(music_player, 'mult', 1) * 100))
+        sound_volume.value = str(music_player.mult * 100)
 
         run = True
         while run:
@@ -319,6 +338,10 @@ class Game:
                         value = sound_volume.value
                         if value.isdigit():
                             value = float(value) / 100
+                            if value < 0:
+                                value = 0
+                            elif value > 1:
+                                value = 1
                             music_player.set_global_volume(value)
 
             # Отрисовываем всё по порядку

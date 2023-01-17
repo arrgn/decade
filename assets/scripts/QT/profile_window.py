@@ -1,11 +1,11 @@
 from os.path import basename
-from PyQt5 import Qt, uic
+from PyQt5 import uic
 from PyQt5.QtCore import Qt as Qt2
 from PyQt5.QtWidgets import QDialog, QPushButton, QLineEdit, QLabel, QFileDialog
 from PyQt5.QtGui import QPixmap
-from assets.scripts.path_module import path_to_file, path_to_userdata, copy_user_file, path_to_asset
-from assets.scripts.config import user
-from assets.scripts.loggers import logger
+from assets.scripts.path_module import path_to_userdata, copy_user_file, path_to_asset
+from assets.scripts.configuration.config import user
+from assets.scripts.configuration.loggers import logger
 
 
 class ProfileWindow(QDialog):

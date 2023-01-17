@@ -2,7 +2,7 @@ import shutil
 
 from os import path, makedirs
 from os.path import basename, isdir
-from assets.scripts.loggers import logger
+from assets.scripts.configuration.loggers import logger
 
 
 def path_to_file(*elements) -> str:

@@ -2,10 +2,9 @@ from __future__ import annotations
 import math
 
 import pygame
-import time
 from os.path import join
 from dataclasses import dataclass
-from assets.scripts.events import MOB_KILLED
+from assets.scripts.instances.events import MOB_KILLED
 from assets.scripts.path_module import path_to_asset
 from pygame.sprite import Sprite, Group
 

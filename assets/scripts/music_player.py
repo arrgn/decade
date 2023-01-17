@@ -83,15 +83,17 @@ class MusicPlayer:
             @param mult коэффициент громкости
             @param sounds звуки для проигрывания во время игры
         """
+        self.mult = mult
         self.sounds: typing.Dict[str, MusicPlayer.Sound] = {}
         self.bg_volume = volume
         if default:
             pg.mixer.music.load(path_to_asset("music", default))
-            pg.mixer.music.set_volume(self.bg_volume * mult)
+            pg.mixer.music.set_volume(self.bg_volume * self.mult)
             pg.mixer.music.play(repeat)
         if sounds:
             for k, v in sounds.items():
                 self[k] = v
+                v.change_config(mult=self.mult)
 
     def change_sound_config(self, name: str, loops: int = None, max_time: int = None, fade_ms: int = None,
                             volume: float = None, mult: float = None) -> None:
@@ -104,7 +106,8 @@ class MusicPlayer:
             @param volume громкость (0 - 1)
             @param mult коэффициент громкости
         """
-        pg.mixer.music.set_volume(self.bg_volume * mult)
+        if mult:
+            self.mult = mult
         if name in self.sounds:
             self.sounds[name].change_config(loops, max_time, fade_ms, volume, mult)
 

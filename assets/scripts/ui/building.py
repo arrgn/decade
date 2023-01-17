@@ -1,5 +1,5 @@
 import pygame
-from assets.scripts.sprite import Harvester, Wall, Conveyor, Turret
+from assets.scripts.ui.sprite import Harvester, Wall, Conveyor, Turret
 import copy
 import os.path
 

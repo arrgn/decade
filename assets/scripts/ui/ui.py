@@ -3,9 +3,9 @@ import pygame
 import sys
 
 from pygame_gui.core import ObjectID
-from assets.scripts.events import WAVE_CLEARED, WAVE_STARTS, GAME_ENDED, SAVE_AND_RETURN
+from assets.scripts.instances.events import WAVE_CLEARED, WAVE_STARTS, GAME_ENDED
 from assets.scripts.path_module import path_to_file, path_to_asset
-from assets.scripts.events import SAVE_AND_RETURN
+from assets.scripts.instances.events import SAVE_AND_RETURN
 
 
 class ProgressBarWOText(pygame_gui.elements.UIProgressBar):

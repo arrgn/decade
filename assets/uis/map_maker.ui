@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>390</width>
-    <height>552</height>
+    <height>678</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -224,11 +224,6 @@ p, li { white-space: pre-wrap; }
         <property name="alternatingRowColors">
          <bool>false</bool>
         </property>
-        <column>
-         <property name="text">
-          <string>Волна</string>
-         </property>
-        </column>
         <column>
          <property name="text">
           <string>Кол-во врагов</string>
