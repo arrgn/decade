@@ -210,7 +210,7 @@ WHERE u.user_id = ?
         user = self.get_user_by_name(username)
         if not user:
             raise self.UserDoesntExistError(f"user with name {username} doesn't exist")
-        map_ = self.get_map(user[0][0], map_name)
+        map_ = self.get_map(map_name)
         if not map_:
             raise self.MapNotFoundError(f"map with title {map_name} doesn't exist")
         sql = """INSERT OR REPLACE INTO scores VALUES (?, ?, ?)"""
