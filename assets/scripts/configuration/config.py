@@ -2,7 +2,8 @@ from assets.scripts.db_module import DAO
 from assets.scripts.user_model import User
 from assets.scripts.music_player import MusicPlayer
 import json
-from assets.scripts.path_module import path_to_asset
+from assets.scripts.path_module import path_to_asset, path_to_file
+from assets.scripts.js_dict import JsDict
 
 path_to_db = "db.db"
 # default_user: list[str(username), str(password)]
@@ -15,7 +16,10 @@ user = User(database=dao)
 if not dao.get_user_by_name(default_user[0]):
     user.add_user(*default_user)
 
-music_player = MusicPlayer(mult=0.1)
+with open(path_to_file("config.json")) as f:
+    config = JsDict(json.load(f))
+
+music_player = MusicPlayer(mult=config.volume)
 
 path_to_maps_config = path_to_asset("maps", "maps.json")
 

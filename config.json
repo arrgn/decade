@@ -1,0 +1,11 @@
+{
+  "title": "Decade",
+  "version": "1.0.0",
+  "size": [
+    1280,
+    720
+  ],
+  "fullscreen": false,
+  "FPS": 144,
+  "volume": 0.2
+}

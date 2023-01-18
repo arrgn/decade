@@ -186,40 +186,40 @@ class IngameUI:
         final_rect = pygame.Rect(0, 0, 300, 200)
         final_rect.center = (self.width // 2, self.height // 2)
         final_panel = pygame_gui.elements.UIPanel(final_rect,
-                                                       manager=self.manager,
-                                                       visible=False)
+                                                  manager=self.manager,
+                                                  visible=False)
 
         text = "You've won!" if self.wave == len(self.waves) else "You lost. Better luck next time"
         final_label = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(0, 0, 300, 40),
-                                                        text=text,
-                                                        manager=self.manager,
-                                                        container=final_panel,
-                                                        parent_element=final_panel)
+                                                  text=text,
+                                                  manager=self.manager,
+                                                  container=final_panel,
+                                                  parent_element=final_panel)
 
         mob_label = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(0, 40, 300, 40),
-                                                     text=f"Killed: {total_killed}/{sum(self.waves.values())}",
-                                                     manager=self.manager,
-                                                     container=final_panel,
-                                                     parent_element=final_panel)
+                                                text=f"Killed: {total_killed}/{sum(self.waves.values())}",
+                                                manager=self.manager,
+                                                container=final_panel,
+                                                parent_element=final_panel)
 
         wave_label = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(0, 80, 300, 40),
-                                                     text=f"Waves {self.wave}/{len(self.waves)}",
-                                                     manager=self.manager,
-                                                     container=final_panel,
-                                                     parent_element=final_panel)
+                                                 text=f"Waves {self.wave}/{len(self.waves)}",
+                                                 manager=self.manager,
+                                                 container=final_panel,
+                                                 parent_element=final_panel)
 
         score = 150 * self.wave + 25 * total_killed
         score_label = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(0, 120, 300, 40),
-                                                       text=f"Score: {score}",
-                                                       manager=self.manager,
-                                                       container=final_panel,
-                                                       parent_element=final_panel)
-        
+                                                  text=f"Score: {score}",
+                                                  manager=self.manager,
+                                                  container=final_panel,
+                                                  parent_element=final_panel)
+
         final_return_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect(-4, 160, 300, 40),
-                                                                text='Return back to menu',
-                                                                manager=self.manager,
-                                                                container=final_panel,
-                                                                parent_element=final_panel)
+                                                           text='Return back to menu',
+                                                           manager=self.manager,
+                                                           container=final_panel,
+                                                           parent_element=final_panel)
 
         final_panel.show()
 
@@ -234,7 +234,6 @@ class IngameUI:
                     pygame.event.post(SAVE_AND_RETURN)
                     return score
 
-            
             final_panel.show()
             dt = temp_clock.tick(30)
             self.manager.process_events(event)

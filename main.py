@@ -26,7 +26,7 @@ from os.path import basename
 from PyQt5 import Qt
 from PyQt5.QtWidgets import QFileDialog
 from pygame_textinput import TextInputVisualizer
-from assets.scripts.configuration.config import release, music_player, user, path_to_maps_config
+from assets.scripts.configuration.config import release, music_player, user, path_to_maps_config, config
 from assets.scripts.configuration.loggers import logger
 from assets.scripts.ui.sprite import *
 from assets.scripts.instances.events import *
@@ -36,6 +36,7 @@ from assets.scripts.level import LevelLoader
 from assets.scripts.ui.ui import IngameUI
 from assets.scripts.profile_group import ProfileGroup
 from assets.scripts.instances.fonts import *
+from assets.scripts.instances.functions import save_and_exit
 from assets.scripts.ui.scroll_area import ScrollArea
 from assets.scripts.QT.map_form import FormWindow
 
@@ -103,14 +104,17 @@ class CameraGroup(pygame.sprite.Group):
 
 
 class Game:
-    FPS = 144
+    FPS = config.FPS
 
-    def __init__(self, width, height) -> None:
+    def __init__(self) -> None:
         pygame.init()
         pygame.display.set_caption('Decade')
-        self.screen = pygame.display.set_mode((width, height))
+        if config.fullscreen:
+            self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        else:
+            self.screen = pygame.display.set_mode(config.size)
         self.clock = pygame.time.Clock()
-        self.profile_group = ProfileGroup()
+        self.profile_group = ProfileGroup(self.screen.get_rect().topright, 60, 35, 10)
         pygame.display.update()
 
         # Запускаем музочку.
@@ -120,8 +124,7 @@ class Game:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    save_and_exit()
 
             self.show_menu()
             # TODO Далее этого скрипт пока не проходит.             TODO
@@ -136,8 +139,8 @@ class Game:
         bg = pygame.transform.scale(unscaled_bg, pygame.display.get_window_size())
 
         # Отрисовываем тексты
-        game_title = big_font.render('Decade', True, '#E1FAF9')
-        version_title = small_font.render('Version Alpha 0.1', True, '#E1FAF9')
+        game_title = big_font.render(config["title"], True, '#E1FAF9')
+        version_title = small_font.render(config["version"], True, '#E1FAF9')
 
         # Создаём кнопки и добавляем их в группу
         play_button = Button((50, 200, 200, 50), 'Play', font, 'White', '#0496FF', '#006BA6')
@@ -149,8 +152,7 @@ class Game:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    save_and_exit()
 
                 elif event.type == pygame.MOUSEMOTION:
                     menu_buttons.check_hover(event.pos)
@@ -168,8 +170,7 @@ class Game:
                         elif clicked_button is options_button:
                             self.settings_screen()
                         elif clicked_button is exit_button:
-                            pygame.quit()
-                            sys.exit()
+                            save_and_exit()
 
             # Отрисовываем всё по порядку
             self.screen.blit(bg, (0, 0))
@@ -188,18 +189,23 @@ class Game:
         bg = pygame.transform.scale(unscaled_bg, pygame.display.get_window_size())
 
         # Отрисовываем тексты
-        game_title = big_font.render('Decade', True, '#E1FAF9')
-        version_title = small_font.render('Version Prealpha 0.1', True, '#E1FAF9')
+        game_title = big_font.render(config["title"], True, '#E1FAF9')
+        version_title = small_font.render(config["title"], True, '#E1FAF9')
         hint = small_font.render("Use Key-Up/Key-Down to scroll", True, "#E1FAF9")
 
-        # Создаём кнопки и добавляем их в группу
-        back_button = Button((50, 650, 200, 50), "Back", font, 'White', '#0496FF', '#006BA6')
-        add_map_button = Button((900, 100, 220, 50), "Add map w/JSON", font, 'White', '#0496FF', '#006BA6')
-        add_map_with_form = Button((900, 160, 220, 50), 'Add map via Form', font, 'White', '#0496FF', '#006BA6')
-        manage_access_button = Button((900, 220, 220, 50), "Manage access", font, 'White', '#0496FF', '#006BA6')
-        menu_buttons = ButtonGroup(back_button, add_map_button, add_map_with_form, manage_access_button)
-
+        # Создаем скроллер
         scroll = ScrollArea((50, 200, 675, 400), 100, 5, 128, (0, 0, 0), get_maps, self.play_screen)
+
+        # Создаём кнопки и добавляем их в группу
+        back_button = Button((50, self.screen.get_height() - 70, 200, 50), "Back", font, 'White', '#0496FF', '#006BA6')
+        add_map_button = Button((scroll.rect.topright[0] + 20, scroll.rect.topright[1], 220, 50), "Add map w/JSON",
+                                font, 'White', '#0496FF', '#006BA6')
+        add_map_with_form = Button((add_map_button.rect.bottomleft[0], add_map_button.rect.bottomleft[1] + 20, 220, 50),
+                                   'Add map via Form', font, 'White', '#0496FF', '#006BA6')
+        manage_access_button = Button(
+            (add_map_with_form.rect.bottomleft[0], add_map_with_form.rect.bottomleft[1] + 20, 220, 50), "Manage access",
+            font, 'White', '#0496FF', '#006BA6')
+        menu_buttons = ButtonGroup(back_button, add_map_button, add_map_with_form, manage_access_button)
 
         def add_map_data(info: typing.Dict[str, typing.Any]):
             with open(path_to_maps_config, mode="r+") as maps_file:
@@ -224,8 +230,7 @@ class Game:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    save_and_exit()
 
                 elif event.type == pygame.MOUSEMOTION:
                     menu_buttons.check_hover(event.pos)
@@ -303,8 +308,9 @@ class Game:
         volume = font.render("Volume", True, "#E1FAF9")
 
         # Создаём кнопки и добавляем их в группу
-        back_button = Button((50, 650, 200, 50), "Back", font, 'White', '#0496FF', '#006BA6')
-        accept_button = Button((300, 650, 200, 50), "Accept", font, "White", '#0496FF', '#006BA6')
+        back_button = Button((50, self.screen.get_height() - 70, 200, 50), "Back", font, 'White', '#0496FF', '#006BA6')
+        accept_button = Button((back_button.rect.topright[0] + 50, back_button.rect.topright[1], 200, 50), "Accept",
+                               font, "White", '#0496FF', '#006BA6')
         menu_buttons = ButtonGroup(back_button, accept_button)
 
         # Поля ввода
@@ -319,8 +325,7 @@ class Game:
 
             for event in events:
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    save_and_exit()
 
                 elif event.type == pygame.MOUSEMOTION:
                     menu_buttons.check_hover(event.pos)
@@ -336,13 +341,17 @@ class Game:
                         break
                     elif clicked_button is accept_button:
                         value = sound_volume.value
-                        if value.isdigit():
+                        try:
                             value = float(value) / 100
                             if value < 0:
                                 value = 0
                             elif value > 1:
                                 value = 1
+                            config.volume = value
                             music_player.set_global_volume(value)
+                            sound_volume.value = str(value * 100)
+                        except TypeError:
+                            logger.exception("Tracked exception occurred")
 
             # Отрисовываем всё по порядку
             self.screen.blit(bg, (0, 0))
@@ -405,8 +414,7 @@ class Game:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    save_and_exit()
                 elif event == SAVE_AND_RETURN:
                     base = None
                     UI = None
@@ -541,6 +549,6 @@ if __name__ == "__main__":
     sys.excepthook = log_handler
 
     app = Qt.QApplication([])
-    main_window = Game(1280, 720)
+    main_window = Game()
     main_window.run()
     app.exec()

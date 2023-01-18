@@ -1,25 +1,33 @@
 import pygame
 
-from assets.scripts.path_module import path_to_asset, path_to_userdata
+from assets.scripts.path_module import path_to_userdata
 from assets.scripts.configuration.config import user
 from assets.scripts.ui.button import Button, ButtonImage, ButtonGroup
 from assets.scripts.QT.auth_window import AuthWindow
 from assets.scripts.QT.profile_window import ProfileWindow
+from assets.scripts.instances.fonts import small_font
 
 
 class ProfileGroup:
-    def __init__(self):
-        small_font = pygame.font.Font(path_to_asset('fonts', 'CinnamonCoffeCake.ttf'), 20)
+    def __init__(self, top_right, width, height, margin):
+        self.top_right = top_right
+        self.height = height
+        self.width = width
+        self.margin = margin
 
         # Создаём спрайты
         profile_sprite = pygame.image.load(
             path_to_userdata(user.get_avatar(), str(user.get_user_id()))).convert_alpha()
 
+        start_x = top_right[0] - width - margin
         # Создаём кнопки и добавляем их в группу
-        self.profile_button = ButtonImage((1210, 10, 60, 60), profile_sprite)
-        self.sign_in_button = Button((1210, 80, 60, 35), 'Sign In', small_font, 'White', '#0496FF', '#006BA6')
-        self.sign_up_button = Button((1210, 125, 60, 35), 'Sign Up', small_font, 'White', '#0496FF', '#006BA6')
-        self.logout_button = Button((1210, 170, 60, 35), 'Logout', small_font, 'White', '#0496FF', '#006BA6')
+        self.profile_button = ButtonImage((start_x, margin, width, width), profile_sprite)
+        self.sign_in_button = Button((start_x, self.profile_button.rect.bottomleft[1] + margin, width, height),
+                                     'Sign In', small_font, 'White', '#0496FF', '#006BA6')
+        self.sign_up_button = Button((start_x, self.sign_in_button.rect.bottomleft[1] + margin, width, height),
+                                     'Sign Up', small_font, 'White', '#0496FF', '#006BA6')
+        self.logout_button = Button((start_x, self.sign_up_button.rect.bottomleft[1] + margin, width, height), 'Logout',
+                                    small_font, 'White', '#0496FF', '#006BA6')
         self.buttons = ButtonGroup(self.profile_button, self.sign_in_button, self.sign_up_button,
                                    self.logout_button)
 
