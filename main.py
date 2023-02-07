@@ -23,8 +23,7 @@ if __name__ == "__main__":
     copy_user_file(path_to_asset("images", "default.png"), "default")
 
 from os.path import basename
-from PyQt5 import Qt
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QApplication
 from pygame_textinput import TextInputVisualizer
 from assets.scripts.configuration.config import release, music_player, user, path_to_maps_config, config
 from assets.scripts.configuration.loggers import logger
@@ -548,7 +547,7 @@ if __name__ == "__main__":
         logging.disable(level=logging.WARNING)
     sys.excepthook = log_handler
 
-    app = Qt.QApplication([])
+    app = QApplication([])
     main_window = Game()
     main_window.run()
     app.exec()
